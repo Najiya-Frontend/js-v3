@@ -1,0 +1,212 @@
+/* ===========================================================
+   TV Channels Page (Tizen 4 safe)
+   File: css/tvchannels.css
+=========================================================== */
+
+#view-tv {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  display: none;
+}
+#view-tv.is-active { display: block; }
+
+/* Background similar to screenshot */
+.tv-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(1200px 800px at 15% 40%, rgba(255, 255, 255, .08), rgba(0, 0, 0, 0) 60%),
+              linear-gradient(90deg, rgba(0, 0, 0, .66) 0%, rgba(0, 0, 0, .58) 55%, rgba(0, 0, 0, .85) 55%, rgba(0, 0, 0, .92) 100%);
+}
+.tv-scrim {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, .18);
+}
+
+/* Topbar (reuse your existing home.css typography as much as possible) */
+.tv-topbar {
+  position: absolute; left: 0; top: 0; right: 0; height: 120px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 28px 56px;
+  box-sizing: border-box;
+}
+.tv-brand {
+  display: flex; align-items: flex-end; gap: 14px;
+}
+.tv-brand__logo {
+  height: 52px; width: auto;
+  opacity: .95;
+}
+.tv-brand__sub {
+  font-size: 18px; opacity: .65; margin-bottom: 6px;
+}
+
+.tv-topmeta {
+  display: flex; align-items: center; gap: 34px;
+  font-size: 30px;
+  opacity: .95;
+}
+.tv-topmeta .muted { opacity: .75; }
+.tv-topmeta .pill {
+  display: inline-flex; align-items: center; gap: 12px;
+}
+
+/* Main layout */
+.tv-main {
+  position: absolute;
+  left: 56px; right: 56px;
+  top: 150px; bottom: 140px;
+  display: flex;
+  gap: 48px;
+}
+
+/* Left panel */
+.tv-left {
+  width: 1080px;
+}
+.tv-left__titleRow {
+  display: flex; align-items: baseline; gap: 22px;
+  margin-bottom: 18px;
+}
+.tv-left__title {
+  font-size: 46px; font-weight: 900;
+}
+.tv-left__count {
+  font-size: 28px; opacity: .65; font-weight: 700;
+}
+
+/* Grid viewport with internal translate scrolling */
+.tv-grid-viewport {
+  position: relative;
+  height: 720px;
+  overflow: hidden;
+}
+.tv-grid {
+  position: absolute; left: 0; top: 0;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px 28px;
+  transform: translateY(0px);
+}
+.tv-tile {
+  width: 240px;
+  height: 170px;
+  box-sizing: border-box;
+}
+.tv-tile__logoBox {
+  width: 240px;
+  height: 118px;
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .25);
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0);
+}
+.tv-tile__logo {
+  max-width: 210px;
+  max-height: 92px;
+  display: block;
+}
+.tv-tile__name {
+  margin-top: 12px;
+  font-size: 26px;
+  font-weight: 800;
+  opacity: .95;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tv-tile.is-focused .tv-tile__logoBox {
+  border-color: rgba(37, 99, 235, 1); /* blue focus */
+  box-shadow: 0 12px 24px rgba(0, 0, 0, .38);
+}
+
+/* Right panel */
+.tv-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.tv-playerBox {
+  width: 100%;
+  height: 420px;
+  background: rgba(0, 0, 0, .4);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 14px 26px rgba(0, 0, 0, .45);
+  position: relative;
+}
+#tv-preview {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+}
+.tv-right__name {
+  margin-top: 26px;
+  font-size: 46px;
+  font-weight: 900;
+}
+
+/* Bottom legend */
+.tv-legend {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 56px;
+  box-sizing: border-box;
+  font-size: 34px;
+}
+.tv-legend__left, .tv-legend__center, .tv-legend__right {
+  display: flex; align-items: center; gap: 36px;
+}
+.tv-keypill {
+  display: inline-flex; align-items: center; gap: 14px;
+  opacity: .95;
+}
+.tv-dot {
+  width: 38px; height: 28px;
+  border-radius: 6px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.tv-dot--yellow { background: #facc15; }
+.tv-dot--blue { background: #1d4ed8; }
+
+/* FULLSCREEN MODE (CSS fullscreen, TV-safe) */
+#view-tv.is-fullscreen .tv-left,
+#view-tv.is-fullscreen .tv-right__name,
+#view-tv.is-fullscreen .tv-legend,
+#view-tv.is-fullscreen .tv-topbar {
+  display: none;
+}
+#view-tv.is-fullscreen .tv-main {
+  left: 0; right: 0; top: 0; bottom: 0;
+  padding: 0;
+}
+#view-tv.is-fullscreen .tv-playerBox {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+/* Channel info overlay (corner, auto-hide) */
+.tv-osd {
+  position: absolute;
+  left: 40px;
+  top: 40px;
+  padding: 18px 22px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, .55);
+  border: 1px solid rgba(255, 255, 255, .18);
+  font-size: 34px;
+  font-weight: 900;
+  display: none;
+}
+.tv-osd.is-on { display: block; }

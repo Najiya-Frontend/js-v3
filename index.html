@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TenX IPTV HZ UI </title>
+  <meta name="color-scheme" content="dark">
+  <link rel="stylesheet" href="css/home.css">
+  <link rel="stylesheet" href="css/tvchannels.css">
+  <link rel="stylesheet" href="css/weather.css">
+  
+
+
+</head>
+
+<body>
+  <!-- Fixed 1920×1080 stage (scaled to screen) -->
+  <div id="tx-stage" class="tx-stage">
+    <div class="tx-app">
+
+      <!-- ===================== WELCOME VIEW ===================== -->
+      <section id="view-welcome" class="tx-view is-active">
+        <div class="tx-bg tx-bg--welcome"></div>
+        <div class="tx-vignette"></div>
+
+        <header class="tx-topbar tx-topbar--welcome">
+          <div class="tx-brand">
+            <!-- Backend logo (hotel cover/logo). Text stays as fallback. -->
+            <img id="brand-logo-w" class="tx-brand__logo" alt="TenX" style="display:none" />
+            <div id="brand-text-w" class="tx-brand__tenx">TenX</div>
+            <div class="tx-brand__sub">hospitality IPTV</div>
+          </div>
+
+          <div class="tx-topmeta">
+            <div class="tx-meta" id="meta-room-h">Room 101</div>
+            <div class="tx-meta" id="meta-temp-h">☁ 23°C</div>
+            <div class="tx-meta" id="meta-time-h">⏱️ 12:34</div>
+            <div class="tx-meta" id="meta-date-h">05 Dec 2025</div>
+          </div>
+        </header>
+
+        <main class="tx-welcome">
+          <div class="tx-welcome__title" id="welcome-title">WELCOME</div>
+          <div class="tx-welcome__name" id="welcome-name">MR AHMED ABDELWAHAB</div>
+
+          <button id="btn-continue" class="tx-btn tx-focusable" data-focus="welcome" data-focus-index="0">
+            <span id="txt-continue">Continue</span>
+          </button>
+
+          <div class="tx-welcome__toggles">
+            <div id="toggle-tv" class="tx-toggle tx-focusable" data-focus="welcome" data-focus-index="1">
+              <span id="txt-tv">Television</span>
+            </div>
+
+            <div id="toggle-lang" class="tx-toggle tx-focusable" data-focus="welcome" data-focus-index="2">
+              <span class="tx-dot" aria-hidden="true"></span>
+              <span id="txt-lang">Language</span>
+            </div>
+          </div>
+        </main>
+      </section>
+
+      <!-- ===================== HOME VIEW ===================== -->
+      <section id="view-home" class="tx-view">
+        <!-- background layer so setPageBg() works -->
+        <div class="tx-bg tx-bg--home"></div>
+        <div class="tx-vignette"></div>
+
+        <header class="tx-topbar tx-topbar--home">
+          <div class="tx-brand">
+            <!-- Backend logo (hotel cover/logo). Text stays as fallback. -->
+            <img id="brand-logo-h" class="tx-brand__logo" alt="TenX" style="display:none" />
+            <div id="brand-text-h" class="tx-brand__tenx">TenX</div>
+            <div class="tx-brand__sub">   hospitality IPTV</div>
+          </div>
+
+          <div class="tx-topmeta">
+            <div class="tx-meta" id="meta-welcome-h">Welcome, Mr Ahmed</div>
+            <div class="tx-meta" id="meta-room-h">Room 101</div>
+            <div class="tx-meta" id="meta-temp-h">☁ 23°C</div>
+            <div class="tx-meta" id="meta-time-h">⏱️ 12:34</div>
+            <div class="tx-meta" id="meta-date-h">05 Dec 2025</div>
+          </div>
+        </header>
+
+        <main class="tx-grid">
+          <!-- Row 1 -->
+          <div id="tile-hotelinfo" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="hotelinfo">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Hotel Information</div>
+          </div>
+
+          <div id="tile-roomservice" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="roomservice">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Room Service</div>
+          </div>
+
+          <!-- Movies: needs BOTH photo bg + center play/icon wrapper -->
+          <div id="tile-movies" class="tx-tile is-photo is-icon tx-focusable" data-focus="home" data-tile="movies">
+            <div class="tx-tile__shade"></div>
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-tile__centerIcon">▶</div>
+            </div>
+            <div class="tx-tile__label">Movies</div>
+          </div>
+
+          <!-- Icon tiles -->
+          <div id="tile-music" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="music">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">🎧</div>
+            </div>
+            <div class="tx-tile__label">Music</div>
+          </div>
+
+          <div id="tile-tv" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="tv">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">▭</div>
+            </div>
+            <div class="tx-tile__label">TV</div>
+          </div>
+
+          <!-- Row 2 -->
+          <div id="tile-spa" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="spa">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Wellness &amp; Spa</div>
+          </div>
+
+          <div id="tile-restaurants" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="restaurants">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Restaurants</div>
+          </div>
+
+          <div id="tile-weather" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="weather">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">☁</div>
+            </div>
+            <div class="tx-tile__label"><span id="tile-weather-text">+23 C</span></div>
+          </div>
+
+          <div id="tile-clock" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="clock">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">⏰</div>
+            </div>
+            <div class="tx-tile__label">World Clock</div>
+          </div>
+
+          <!-- Row 3 -->
+          <div id="tile-dining" class="tx-tile is-iconBig tx-focusable" data-focus="home" data-tile="dining">
+            <div class="tx-tile__iconWrap tx-tile__iconWrap--big">
+              <img class="tx-route-icon tx-route-icon--big" alt="" />
+              <div class="tx-iconBig" aria-hidden="true">🍽</div>
+            </div>
+            <div class="tx-tile__label">In-Room Dining</div>
+            <div class="tx-tile__sub">24 hours</div>
+          </div>
+
+          <div id="tile-discover" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="discover">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Discover City</div>
+          </div>
+
+          <div id="tile-roomcontrol" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="roomcontrol">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">🎛</div>
+            </div>
+            <div class="tx-tile__label">Room Control</div>
+          </div>
+
+          <div id="tile-cart" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="cart">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">👜</div>
+            </div>
+            <div class="tx-tile__label">Cart</div>
+          </div>
+
+          <div id="tile-special" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="special">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Special Offers</div>
+          </div>
+
+          <!-- Row 4 -->
+          <div id="tile-prayer" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="prayer">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Prayer</div>
+          </div>
+
+          <div id="tile-messages" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="messages">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">✉</div>
+            </div>
+            <div class="tx-tile__label">Messages</div>
+          </div>
+
+          <div id="tile-viewbill" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="viewbill">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">🧾</div>
+            </div>
+            <div class="tx-tile__label">View Bill</div>
+          </div>
+        </main>
+      </section>
+
+<!-- ===================== WEATHER VIEW (NEW) ===================== -->
+<section id="view-weather" class="tx-view">
+  <div class="tx-bg tx-bg--weather"></div>
+  <div class="tx-vignette"></div>
+
+  <header class="tx-topbar tx-topbar--home">
+    <div class="tx-brand">
+            <!-- Backend logo (hotel cover/logo). Text stays as fallback. -->
+            <img id="brand-logo-w" class="tx-brand__logo" alt="TenX" style="display:none" />
+            <div id="brand-text-w" class="tx-brand__tenx">TenX</div>
+            <div class="tx-brand__sub">hospitality IPTV</div>
+          </div>
+
+    <div class="tx-topmeta">
+      <div class="tx-meta" id="meta-welcome-we">Welcome, Mr Ahmed</div>
+      <div class="tx-meta" id="meta-room-we">Room 101</div>
+      <div class="tx-meta" id="meta-temp-we">+23 C</div>
+      <div class="tx-meta" id="meta-time-we">12:34</div>
+      <div class="tx-meta" id="meta-date-we">05 Dec 2025</div>
+    </div>
+  </header>
+
+  <main class="wx">
+    <div class="wx-left">
+      <div class="wx-kv" id="wx-wind">Wind: —</div>
+      <div class="wx-kv" id="wx-humidity">Humidity: —</div>
+    </div>
+
+    <div class="wx-center">
+      <div class="wx-city" id="wx-city">Weather</div>
+      <div class="wx-now">
+        <span class="wx-temp" id="wx-temp">+0°C</span>
+        <span class="wx-cond" id="wx-cond">now<br>—</span>
+      </div>
+    </div>
+
+    <div class="wx-right">
+      <div class="wx-kv" id="wx-pressure">Pressure: —</div>
+      <div class="wx-kv" id="wx-cloud">Cloudiness: —</div>
+    </div>
+
+    <div class="wx-cards" id="wx-cards"></div>
+  </main>
+
+
+
+  
+  <div class="wx-bottom">
+  <!-- LEFT: Back + C/F -->
+  <div class="wx-legend wx-legend--left">
+    <span class="wx-item"><span class="wx-ico">↩</span> Back</span>
+    <span class="wx-sep"></span>
+    <span class="wx-item"><span class="wx-key wx-key--red"></span> C°/F°</span>
+  </div>
+
+  <!-- CENTER: Change Location -->
+  <div class="wx-legend wx-legend--center">
+    <span class="wx-item"><span class="wx-key wx-key--blue"></span> Change Location</span>
+  </div>
+
+  <!-- RIGHT: Television + Language -->
+  <div class="wx-legend wx-legend--right">
+    <span class="wx-item"><span class="wx-key wx-key--red"></span> Television</span>
+    <span class="wx-sep"></span>
+    <span class="wx-item"><span class="wx-key wx-key--blue"></span> Language</span>
+  </div>
+</div>
+
+
+   
+</section>
+
+      <!-- ===================== TV VIEW ===================== -->
+  <section id="view-tv" class="tx-view">
+  <div class="tv-bg"></div>
+  <div class="tv-scrim"></div>
+
+  <!-- TV top bar, similar to home view -->
+  <header class="tv-topbar">
+    <div class="tx-brand">
+            <!-- Backend logo (hotel cover/logo). Text stays as fallback. -->
+            <img id="brand-logo-w" class="tx-brand__logo" alt="TenX" style="display:none" />
+            <div id="brand-text-w" class="tx-brand__tenx">TenX</div>
+            <div class="tx-brand__sub">hospitality IPTV</div>
+          </div>
+
+    <div class="tv-topmeta">
+      <div class="muted" id="tv-welcome">Welcome, Mr Ahmed</div>
+      <div class="muted" id="tv-room">Room 101</div>
+      <div class="pill"><span id="tv-wx">☁ +23 C</span></div>
+      <div class="pill"><span id="tv-clock">12:34</span></div>
+      <div class="pill"><span id="tv-date">05 Dec 2025</span></div>
+    </div>
+  </header>
+
+  <!-- Main TV Channels Grid + Player -->
+  <div class="tv-main">
+    <div class="tv-left">
+      <div class="tv-left__titleRow">
+        <div class="tv-left__title" id="tv-title">TV Channels</div>
+        <div class="tv-left__count" id="tv-count">1 of 1</div>
+      </div>
+      <div class="tv-grid-viewport" id="tv-grid-viewport">
+        <div id="tv-grid" class="tv-grid"></div>
+      </div>
+    </div>
+
+    <div class="tv-right">
+      <div class="tv-playerBox">
+        <video id="tv-preview" autoplay muted></video>
+        <div id="tv-osd" class="tv-osd"></div>
+      </div>
+      <div id="tv-now-name" class="tv-right__name"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Legend -->
+  <footer class="tv-legend">
+    <div class="tv-legend__left">
+      <div class="tv-keypill">↩ Back</div>
+      <div class="tv-keypill">⟷ Navigation</div>
+    </div>
+
+    <div class="tv-legend__center">
+      <div class="tv-keypill">OK: Watch Channel</div>
+      <div class="tv-keypill">Filter by:</div>
+      <div class="tv-keypill"><span class="tv-dot tv-dot--yellow"></span> Television</div>
+    </div>
+
+    <div class="tv-legend__right">
+      <div class="tv-keypill"><span class="tv-dot tv-dot--blue"></span> Language</div>
+    </div>
+  </footer>
+</section>
+<!-- ===================== TV VIEW ===================== -->
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/utils/mac.util.js"></script>
+  <script src="js/services/api.js"></script>
+  <script src="js/app/tvchannels.js"></script>
+  <script src="js/app/weather.js"></script>
+  <script src="js/app/home.js"></script>
+  
+  
+</body>
+</html>
