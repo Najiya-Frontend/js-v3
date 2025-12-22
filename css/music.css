@@ -1,0 +1,223 @@
+/* css/music.css — Tizen 4 safe (1920x1080 absolute layout) */
+
+#view-music{ position:absolute; left:0; top:0; width:1920px; height:1080px; display:none; }
+#view-music.is-active{ display:block; }
+
+/* --- Background (NO inset) --- */
+.mx-bg{
+  position:absolute; left:0; top:0; right:0; bottom:0;
+  background-image:
+    linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.65) 75%, rgba(0,0,0,.92) 100%),
+    url("../assets/music-bg-2.jpg");
+}
+
+.mx-vignette{
+  position:absolute; left:0; top:0; right:0; bottom:0;
+  background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 100%);
+}
+
+
+
+/* --- Title row (NO gap) --- */
+.mx-titleRow{
+  position:absolute; left:60px; top:190px; right:60px; height:50px;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+}
+.mx-title{
+  font-family: 'Times New Roman', Times, serif;
+
+  font-size:44px; font-weight:700; color:rgba(255,255,255,.92);
+}
+.mx-count{
+  margin-left:70px;
+  font-family: 'Times New Roman', Times, serif;
+
+  font-size:28px; font-weight:600; color:rgba(255,255,255,.55);
+}
+
+/* --- Main layout --- */
+.mx-main{ position:absolute; left:60px; right:60px; top:270px; bottom:120px; }
+
+.mx-left{ position:absolute; left:0; top:0; bottom:0; width:1040px; }
+.mx-grid-viewport{ position:absolute; left:0; top:0; right:0; bottom:0; overflow:hidden; }
+.mx-grid{ position:absolute; left:0; top:0; width:100%; }
+
+/* ==========================================================
+   ✅ SAFE DIVIDER (NO skew/transform)
+   This removes the “weird quadrilateral” on Tizen 4.
+   ========================================================== */
+.mx-divider{
+  position:absolute; left:1040px; top:-40px; bottom:-40px;
+  width:260px;
+  pointer-events:none;
+  /* right side dark area */
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,.55) 55%,
+    rgba(0,0,0,.90) 100%
+  );
+}
+/* diagonal edge overlay WITHOUT transform */
+.mx-divider:before{
+  content:"";
+  position:absolute; left:-140px; top:0; bottom:0;
+  width:140px;
+  background: linear-gradient(135deg,
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,.35) 55%,
+    rgba(0,0,0,.75) 100%
+  );
+}
+
+/* --- Right panel --- */
+.mx-rightPanel{
+  position:absolute; right:0; top:0; bottom:0;
+  width:720px;
+  padding-left:40px;
+}
+.mx-playerCard{ margin-top:60px; }
+.mx-player-visual{
+  width:650px; height:350px;
+  border-radius:10px;
+  background: rgba(255,255,255,.06);
+  background-size:cover;
+  background-position:center;
+  border:1px solid rgba(255,255,255,.12);
+}
+
+/* progress row (NO gap) */
+.mx-player-progress{
+  margin-top:22px;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+  width:650px;
+}
+.mx-player-time{
+  font-family: 'Times New Roman', Times, serif;
+
+  font-size:18px; font-weight:700;
+  color:rgba(255,255,255,.70);
+  width:54px;
+}
+.mx-player-time:first-child{ margin-right:14px; }
+.mx-player-time:last-child{ margin-left:14px; }
+
+.mx-player-bar{
+  position:relative;
+  -webkit-box-flex:1; -webkit-flex:1; flex:1;
+  height:6px;
+  background: rgba(255,255,255,.22);
+  border-radius:8px;
+}
+.mx-player-fill{
+  position:absolute; left:0; top:0; height:6px; width:0%;
+  background: rgba(255,255,255,.75);
+  border-radius:8px;
+}
+.mx-player-knob{
+  position:absolute; top:50%; left:0%;
+  width:14px; height:14px;
+  background: rgba(255,255,255,.92);
+  border-radius:999px;
+  -webkit-transform: translate(-7px, -7px);
+  transform: translate(-7px, -7px);
+}
+
+/* controls (NO gap) */
+.mx-player-controls{
+  margin-top:18px;
+  width:650px;
+  text-align:center;
+}
+.mx-player-controls .mx-btn{ margin:0 20px; }
+
+.mx-btn{
+  width:62px; height:62px;
+  border-radius:999px;
+  background: rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.90);
+  font-size:26px;
+}
+.mx-btn--play{ width:76px; height:76px; font-size:30px; }
+
+.mx-nowtitle{
+  margin-top:26px;
+  font-family: 'Times New Roman', Times, serif;
+
+  font-size:44px; font-weight:700;
+  color:rgba(255,255,255,.92);
+}
+
+/* Tiles */
+.mx-tile{ position:absolute; width:240px; height:170px; }
+.mx-cover{
+  position:absolute; left:0; top:0;
+  width:240px; height:130px;
+  border-radius:4px;
+  overflow:hidden;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+}
+.mx-cover img{ width:100%; height:100%; display:block; }
+.mx-name{
+  position:absolute; left:0; top:140px; width:240px;
+  font-family: 'Times New Roman', Times, serif;
+
+  font-size:26px; font-weight:700;
+  color:rgba(255,255,255,.92);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* focus */
+.mx-tile.is-focus .mx-cover{
+  border:2px solid rgba(255,255,255,.85);
+  box-shadow: 0 0 0 2px rgba(0,0,0,.6) inset;
+}
+
+/* Footer legend (NO gap) */
+.mx-legend{
+  position:absolute; left:60px; right:60px; bottom:38px;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+  -webkit-box-pack:justify; -webkit-justify-content:space-between; justify-content:space-between;
+  font-family: 'Times New Roman', Times, serif;
+
+  font-size:30px; font-weight:700;
+  color:rgba(255,255,255,.90);
+}
+.mx-legend__left,.mx-legend__center,.mx-legend__right{ white-space:nowrap; }
+.mx-legend__left > *,.mx-legend__center > *,.mx-legend__right > *{ margin-right:14px; }
+.mx-legend__left > *:last-child,
+.mx-legend__center > *:last-child,
+.mx-legend__right > *:last-child{ margin-right:0; }
+
+.mx-ico{ opacity:.9; }
+.mx-dot{ width:26px; height:26px; border-radius:4px; display:inline-block; vertical-align:middle; }
+.mx-dot--y{ background:#facc15; }
+.mx-dot--b{ background:#1d4ed8; }
+.mx-sp{ width:26px; display:inline-block; }
+
+#view-music{ z-index:1; }     /* under global topbar */
+.mx-bg{ z-index:0; }
+.mx-vignette{ z-index:1; }
+.mx-titleRow{ z-index:2; }
+.mx-main{ z-index:2; }
+.mx-legend{ z-index:2; }
+.mx-divider{ z-index:2; }     /* if you want divider above bg */
+.mx-rightPanel{ z-index:3; }  /* player above divider */
+
+.mx-nowartist{
+  margin-top:10px;
+  width:650px;
+  font-family: var(--font-en, serif);
+  font-size:28px;
+  font-weight:600;
+  color:rgba(255,255,255,.72);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+

@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/home.css">
   <link rel="stylesheet" href="css/tvchannels.css">
   <link rel="stylesheet" href="css/weather.css">
+  <link rel="stylesheet" href="css/music.css">
   
 
 
@@ -17,27 +18,30 @@
   <!-- Fixed 1920×1080 stage (scaled to screen) -->
   <div id="tx-stage" class="tx-stage">
     <div class="tx-app">
+      <!-- GLOBAL TOPBAR (shared by all views) -->
+        <header id="tx-topbar" class="tx-topbar tx-topbar--global">
+          <div class="tx-brand">
+            <img id="brand-logo" class="tx-brand__logo" alt="TenX" style="display:none" />
+            <div id="brand-text" class="tx-brand__tenx">TenX</div>
+            <div class="tx-brand__sub">hospitality IPTV</div>
+          </div>
+
+          <div class="tx-topmeta">
+            <div class="tx-meta" id="meta-welcome">Welcome, Mr.Ahmed</div>
+            <div class="tx-meta" id="meta-room">Room 101</div>
+            <div class="tx-meta" id="meta-temp">☁ 23°C</div>
+            <div class="tx-meta" id="meta-time">⏱️ --:--</div>
+            <div class="tx-meta" id="meta-date">-- --- ----</div>
+          </div>
+        </header>
+
 
       <!-- ===================== WELCOME VIEW ===================== -->
       <section id="view-welcome" class="tx-view is-active">
         <div class="tx-bg tx-bg--welcome"></div>
         <div class="tx-vignette"></div>
 
-        <header class="tx-topbar tx-topbar--welcome">
-          <div class="tx-brand">
-            <!-- Backend logo (hotel cover/logo). Text stays as fallback. -->
-            <img id="brand-logo-w" class="tx-brand__logo" alt="TenX" style="display:none" />
-            <div id="brand-text-w" class="tx-brand__tenx">TenX</div>
-            <div class="tx-brand__sub">hospitality IPTV</div>
-          </div>
-
-          <div class="tx-topmeta">
-            <div class="tx-meta" id="meta-room-h">Room 101</div>
-            <div class="tx-meta" id="meta-temp-h">☁ 23°C</div>
-            <div class="tx-meta" id="meta-time-h">⏱️ 12:34</div>
-            <div class="tx-meta" id="meta-date-h">05 Dec 2025</div>
-          </div>
-        </header>
+      
 
         <main class="tx-welcome">
           <div class="tx-welcome__title" id="welcome-title">WELCOME</div>
@@ -66,22 +70,7 @@
         <div class="tx-bg tx-bg--home"></div>
         <div class="tx-vignette"></div>
 
-        <header class="tx-topbar tx-topbar--home">
-          <div class="tx-brand">
-            <!-- Backend logo (hotel cover/logo). Text stays as fallback. -->
-            <img id="brand-logo-h" class="tx-brand__logo" alt="TenX" style="display:none" />
-            <div id="brand-text-h" class="tx-brand__tenx">TenX</div>
-            <div class="tx-brand__sub">   hospitality IPTV</div>
-          </div>
-
-          <div class="tx-topmeta">
-            <div class="tx-meta" id="meta-welcome-h">Welcome, Mr Ahmed</div>
-            <div class="tx-meta" id="meta-room-h">Room 101</div>
-            <div class="tx-meta" id="meta-temp-h">☁ 23°C</div>
-            <div class="tx-meta" id="meta-time-h">⏱️ 12:34</div>
-            <div class="tx-meta" id="meta-date-h">05 Dec 2025</div>
-          </div>
-        </header>
+       
 
         <main class="tx-grid">
           <!-- Row 1 -->
@@ -207,22 +196,6 @@
   <div class="tx-bg tx-bg--weather"></div>
   <div class="tx-vignette"></div>
 
-  <header class="tx-topbar tx-topbar--home">
-    <div class="tx-brand">
-            <!-- Backend logo (hotel cover/logo). Text stays as fallback. -->
-            <img id="brand-logo-w" class="tx-brand__logo" alt="TenX" style="display:none" />
-            <div id="brand-text-w" class="tx-brand__tenx">TenX</div>
-            <div class="tx-brand__sub">hospitality IPTV</div>
-          </div>
-
-    <div class="tx-topmeta">
-      <div class="tx-meta" id="meta-welcome-we">Welcome, Mr Ahmed</div>
-      <div class="tx-meta" id="meta-room-we">Room 101</div>
-      <div class="tx-meta" id="meta-temp-we">+23 C</div>
-      <div class="tx-meta" id="meta-time-we">12:34</div>
-      <div class="tx-meta" id="meta-date-we">05 Dec 2025</div>
-    </div>
-  </header>
 
   <main class="wx">
     <div class="wx-left">
@@ -279,23 +252,8 @@
   <div class="tv-bg"></div>
   <div class="tv-scrim"></div>
 
-  <!-- TV top bar, similar to home view -->
-  <header class="tv-topbar">
-    <div class="tx-brand">
-            <!-- Backend logo (hotel cover/logo). Text stays as fallback. -->
-            <img id="brand-logo-w" class="tx-brand__logo" alt="TenX" style="display:none" />
-            <div id="brand-text-w" class="tx-brand__tenx">TenX</div>
-            <div class="tx-brand__sub">hospitality IPTV</div>
-          </div>
-
-    <div class="tv-topmeta">
-      <div class="muted" id="tv-welcome">Welcome, Mr Ahmed</div>
-      <div class="muted" id="tv-room">Room 101</div>
-      <div class="pill"><span id="tv-wx">☁ +23 C</span></div>
-      <div class="pill"><span id="tv-clock">12:34</span></div>
-      <div class="pill"><span id="tv-date">05 Dec 2025</span></div>
-    </div>
-  </header>
+ 
+ 
 
   <!-- Main TV Channels Grid + Player -->
   <div class="tv-main">
@@ -336,7 +294,76 @@
     </div>
   </footer>
 </section>
-<!-- ===================== TV VIEW ===================== -->
+<!-- ===================== MUSIC VIEW ===================== -->
+ <section id="view-music" class="tx-view">
+  <div class="mx-bg"></div>
+  <div class="mx-vignette"></div>
+
+  <!-- Topbar (same structure feel as channels) -->
+  
+
+  <!-- Title row -->
+  <div class="mx-titleRow">
+    <div class="mx-title">Music</div>
+    <div id="mx-count" class="mx-count">0 of 0</div>
+  </div>
+
+  <!-- Main layout -->
+  <div class="mx-main">
+    <!-- LEFT: grid -->
+    <div class="mx-left">
+      <div id="mx-grid-viewport" class="mx-grid-viewport">
+        <div id="mx-grid" class="mx-grid"></div>
+      </div>
+    </div>
+
+    <!-- diagonal divider -->
+    <div class="mx-divider"></div>
+
+    <!-- RIGHT: player panel -->
+    <div class="mx-rightPanel">
+      <div class="mx-playerCard">
+        <div id="mx-player-visual" class="mx-player-visual"></div>
+
+        <div class="mx-player-progress">
+          <span id="mx-cur" class="mx-player-time">00:00</span>
+          <div class="mx-player-bar">
+            <div id="mx-player-fill" class="mx-player-fill"></div>
+            <div id="mx-player-knob" class="mx-player-knob"></div>
+          </div>
+          <span id="mx-dur" class="mx-player-time">00:00</span>
+        </div>
+
+        <div class="mx-player-controls">
+          <button id="mx-prev" class="mx-btn" type="button">⏮</button>
+          <button id="mx-play" class="mx-btn mx-btn--play" type="button">▶</button>
+          <button id="mx-next" class="mx-btn" type="button">⏭</button>
+        </div>
+      </div>
+
+      <div id="mx-nowtitle" class="mx-nowtitle">—</div>
+    </div>
+  </div>
+
+  <!-- Footer legend -->
+  <footer class="mx-legend">
+    <div class="mx-legend__left">
+      <span class="mx-ico">↩</span> Back
+    </div>
+    <div class="mx-legend__center">
+      <span class="mx-ico">OK</span> Listen Music
+    </div>
+    <div class="mx-legend__right">
+      <span class="mx-ico mx-dot mx-dot--y"></span> Music
+      <span class="mx-sp"></span>
+      <span class="mx-ico mx-dot mx-dot--b"></span> Language
+    </div>
+  </footer>
+
+  <!-- hidden audio (for browser/LG/Tizen HTML5 audio) -->
+  <audio id="mx-audio" preload="metadata"></audio>
+</section>
+<!-- ===================== END MUSIC VIEW ===================== -->
     </div>
   </div>
 
@@ -345,6 +372,8 @@
   <script src="js/services/api.js"></script>
   <script src="js/app/tvchannels.js"></script>
   <script src="js/app/weather.js"></script>
+  <script src="js/app/music.js"></script>
+
   <script src="js/app/home.js"></script>
   
   

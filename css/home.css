@@ -18,16 +18,19 @@ html, body{
 *{ box-sizing:border-box; }
 
 /* Fixed 1920×1080 stage (scaled to screen by JS) */
-.tx-stage{
-  position:absolute;
-  left:50%;
-  top:50%;
-  width:1920px;
-  height:1080px;
-  transform: translate(-50%, -50%) scale(1);
-  transform-origin:center center;
-  background:#000;
+/* Fixed 1920×1080 stage (scaled to screen by JS) */
+.tx-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;  /* Set width to 100% for responsiveness */
+  height: 100%; /* Set height to 100% for responsiveness */
+  transform: translate(-50%, -50%) scale(1); /* Maintain centering */
+  transform-origin: center center;
+  background: #000;
+  overflow: hidden; /* Ensure no overflow */
 }
+
 
 .tx-app{ position:relative; width:100%; height:100%; }
 
@@ -36,47 +39,54 @@ html, body{
   position:absolute;
   top:0; right:0; bottom:0; left:0;
   display:none;
+  z-index:1;
 }
 .tx-view.is-active{ display:block; }
 
 /* Backgrounds */
-.tx-bg{
-  position:absolute;
-  top:0; right:0; bottom:0; left:0;
-  background:#111;
-  background-size:cover;
-  background-position:center;
+.tx-bg {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: #111;
+  background-size: cover;  /* Ensure background image scales to cover */
+  background-position: center;
 }
-/* Home default background layer (so it’s not plain black if backend bg missing) */
-.tx-bg--home{
+
+.tx-bg--home {
   background-image:
     linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.65) 75%, rgba(0,0,0,.92) 100%),
-    url("../assets/home-bg.jpg");
+    url("../assets/home-bg.jpg"); /* Home background */
 }
 
-.tx-vignette{
-  position:absolute;
-  top:0; right:0; bottom:0; left:0;
-  background:
-    linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 45%),
-    linear-gradient(0deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,0) 55%);
-  pointer-events:none;
+.tx-vignette {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: linear-gradient(0deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,0) 55%);
+  pointer-events: none;
 }
+
 
 /* Topbar */
-.tx-topbar{
-  position:absolute;
-  left:0; right:0; top:0;
-  height:140px;
-  padding:28px 44px;
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
+.tx-topbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 120px;  /* Reduce the height to prevent overflow */
+  padding: 20px 44px;  /* Adjust padding */
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  z-index: 9999;  /* Ensure it's above other content */
 }
-.tx-topbar--welcome{
+
+
+/* .tx-topbar--welcome{
   background: linear-gradient(180deg, rgba(4,28,46,.95) 0%, rgba(4,28,46,.45) 55%, rgba(0,0,0,0) 100%);
+} */
+.tx-topbar--global{
+  background: linear-gradient(180deg, rgba(0,0,0,.92) 0%, rgba(0,0,0,.45) 65%, rgba(0,0,0,0) 100%);
 }
-.tx-topbar--home{ background:#000; }
 
 /* Brand block (supports backend logo) */
 .tx-brand{
@@ -160,15 +170,14 @@ html, body{
    whole grid: 1814 W × 898 H (we render 1:1)
    ========================================================================= */
 
-.tx-grid{
-  position:absolute;
-  width:1814px;
-  height:898px;
-
-  /* center horizontally inside 1920 */
-  left:53px;
-  top:160px;
+.tx-grid {
+  position: absolute;
+  width: 100%;  /* Use 100% width */
+  height: 100%; /* Use 100% height */
+  left: 53px;
+  top: 160px;
 }
+
 
 /* Tile base */
 .tx-tile{
@@ -352,11 +361,31 @@ html, body{
 #tile-cart,
 #tile-messages,
 #tile-viewbill{ 
-  background-color: #333; /* Grey background color */
+  background-color: #333;
 } */
 
 /* Keep layout LTR even for Arabic (only font changes) */
 body.lang-ar{ font-family: "Tajawal", "Amiri", Arial, sans-serif; }
 body.lang-ar .tx-stage{ direction:ltr; }
 
+/* Topbar meta row: keep items readable */
+.tx-topmeta{
+  line-height:1.2;
+}
+
+/* Keep icons + text on one line */
+.tx-topmeta .tx-meta{
+  white-space:nowrap;
+}
+
+/* Slightly smaller date so it fits comfortably */
+#meta-date{
+  font-size:28px;
+  opacity:.95;
+}
+
+/* Make time stand out */
+#meta-time{
+  font-weight:900;
+}
 

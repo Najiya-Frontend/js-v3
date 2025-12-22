@@ -6,55 +6,37 @@
 #view-tv {
   position: absolute; left: 0; top: 0; right: 0; bottom: 0;
   display: none;
+  
 }
 #view-tv.is-active { display: block; }
 
-/* Background similar to screenshot */
-.tv-bg {
-  position: absolute; inset: 0;
-  background: radial-gradient(1200px 800px at 15% 40%, rgba(255, 255, 255, .08), rgba(0, 0, 0, 0) 60%),
-              linear-gradient(90deg, rgba(0, 0, 0, .66) 0%, rgba(0, 0, 0, .58) 55%, rgba(0, 0, 0, .85) 55%, rgba(0, 0, 0, .92) 100%);
+.tv-bg{
+  position:absolute;
+  left:0; top:0; right:0; bottom:0;
+  background: linear-gradient(180deg,
+    rgba(0,0,0,.45) 0%,
+    rgba(0,0,0,.72) 55%,
+    rgba(0,0,0,.92) 100%);
 }
+
+
 .tv-scrim {
-  position: absolute; inset: 0;
+  position: absolute;
+  left: 0; top: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, .18);
 }
 
-/* Topbar (reuse your existing home.css typography as much as possible) */
-.tv-topbar {
-  position: absolute; left: 0; top: 0; right: 0; height: 120px;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 28px 56px;
-  box-sizing: border-box;
-}
-.tv-brand {
-  display: flex; align-items: flex-end; gap: 14px;
-}
-.tv-brand__logo {
-  height: 52px; width: auto;
-  opacity: .95;
-}
-.tv-brand__sub {
-  font-size: 18px; opacity: .65; margin-bottom: 6px;
-}
 
-.tv-topmeta {
-  display: flex; align-items: center; gap: 34px;
-  font-size: 30px;
-  opacity: .95;
-}
-.tv-topmeta .muted { opacity: .75; }
-.tv-topmeta .pill {
-  display: inline-flex; align-items: center; gap: 12px;
-}
+
+
 
 /* Main layout */
 .tv-main {
   position: absolute;
   left: 56px; right: 56px;
-  top: 150px; bottom: 140px;
+  top: 190px; bottom: 140px;
   display: flex;
-  gap: 48px;
+  gap: 60px;
 }
 
 /* Left panel */
@@ -75,7 +57,7 @@
 /* Grid viewport with internal translate scrolling */
 .tv-grid-viewport {
   position: relative;
-  height: 720px;
+  height: 566px; /* 3 rows: (170*3) + (28*2) */
   overflow: hidden;
 }
 .tv-grid {
@@ -83,7 +65,7 @@
   width: 100%;
   display: flex;
   flex-wrap: wrap;
-  gap: 28px 28px;
+  gap: 28px 36px;
   transform: translateY(0px);
 }
 .tv-tile {
@@ -92,8 +74,8 @@
   box-sizing: border-box;
 }
 .tv-tile__logoBox {
-  width: 240px;
-  height: 118px;
+  width: 230px;
+  height: 130px;
   border-radius: 10px;
   background: #fff;
   display: flex;
@@ -131,19 +113,23 @@
   align-items: flex-start;
 }
 .tv-playerBox {
-  width: 100%;
-  height: 420px;
+  width: 650px;     /* requested */
+  height: 350px;    /* requested */
   background: rgba(0, 0, 0, .4);
-  border-radius: 14px;
+  /* border-radius: 14px; */
   overflow: hidden;
   box-shadow: 0 14px 26px rgba(0, 0, 0, .45);
   position: relative;
+  
+  overflow: hidden;
 }
 #tv-preview {
   width: 100%;
   height: 100%;
   display: block;
-  background: #000;
+  background: #000000;
+  border: papayawhip 2px solid; /* for TV focus outline */
+  overflow: hidden;
 }
 .tv-right__name {
   margin-top: 26px;
@@ -194,6 +180,9 @@
   width: 100%;
   height: 100%;
   border-radius: 0;
+  overflow: hidden;
+  transform: scale(1.02);
+  
 }
 
 /* Channel info overlay (corner, auto-hide) */
@@ -210,3 +199,10 @@
   display: none;
 }
 .tv-osd.is-on { display: block; }
+
+#view-tv { z-index: 1; }     /* stays under global topbar */
+.tv-bg { z-index: 0; }
+.tv-scrim { z-index: 1; }
+.tv-main { z-index: 2; }
+.tv-legend { z-index: 3; }
+.tv-osd { z-index: 4; }
