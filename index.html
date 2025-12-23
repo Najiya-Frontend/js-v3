@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TenX IPTV HZ UI </title>
   <meta name="color-scheme" content="dark">
+  <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
   <link rel="stylesheet" href="css/home.css">
   <link rel="stylesheet" href="css/tvchannels.css">
   <link rel="stylesheet" href="css/weather.css">
@@ -295,12 +296,9 @@
   </footer>
 </section>
 <!-- ===================== MUSIC VIEW ===================== -->
- <section id="view-music" class="tx-view">
+<section id="view-music" class="tx-view">
   <div class="mx-bg"></div>
   <div class="mx-vignette"></div>
-
-  <!-- Topbar (same structure feel as channels) -->
-  
 
   <!-- Title row -->
   <div class="mx-titleRow">
@@ -310,20 +308,44 @@
 
   <!-- Main layout -->
   <div class="mx-main">
-    <!-- LEFT: grid -->
+
+    <!-- LEFT: sidebar + grid -->
     <div class="mx-left">
+
+      <!-- Sidebar (Figma) -->
+      <div class="mx-side">
+        <div class="mx-nav" id="mx-nav">
+          <div class="mx-navItem is-focus" data-tab="songs">All Songs</div>
+          <div class="mx-navItem" data-tab="albums">Albums</div>
+          <div class="mx-navItem" data-tab="genres">Genres</div>
+          <div class="mx-navItem" data-tab="playlists">Playlists</div>
+        </div>
+      </div>
+
+      <!-- Scrollbar (optional visual only) -->
+      <div class="mx-scrollbar" id="mx-scrollbar">
+        <div class="mx-scrollbar-thumb" id="mx-scrollbar-thumb"></div>
+      </div>
+
+      <!-- Grid -->
       <div id="mx-grid-viewport" class="mx-grid-viewport">
         <div id="mx-grid" class="mx-grid"></div>
       </div>
+
     </div>
 
-    <!-- diagonal divider -->
+    <!-- Divider -->
     <div class="mx-divider"></div>
 
     <!-- RIGHT: player panel -->
     <div class="mx-rightPanel">
       <div class="mx-playerCard">
+
         <div id="mx-player-visual" class="mx-player-visual"></div>
+
+        <!-- ✅ Put title/artist inside card (Figma) -->
+        <div id="mx-nowtitle" class="mx-nowtitle">—</div>
+        <div id="mx-nowartist" class="mx-nowartist"></div>
 
         <div class="mx-player-progress">
           <span id="mx-cur" class="mx-player-time">00:00</span>
@@ -339,20 +361,16 @@
           <button id="mx-play" class="mx-btn mx-btn--play" type="button">▶</button>
           <button id="mx-next" class="mx-btn" type="button">⏭</button>
         </div>
-      </div>
 
-      <div id="mx-nowtitle" class="mx-nowtitle">—</div>
+      </div>
     </div>
+
   </div>
 
   <!-- Footer legend -->
   <footer class="mx-legend">
-    <div class="mx-legend__left">
-      <span class="mx-ico">↩</span> Back
-    </div>
-    <div class="mx-legend__center">
-      <span class="mx-ico">OK</span> Listen Music
-    </div>
+    <div class="mx-legend__left"><span class="mx-ico">↩</span> Back</div>
+    <div class="mx-legend__center"><span class="mx-ico">OK</span> Listen Music</div>
     <div class="mx-legend__right">
       <span class="mx-ico mx-dot mx-dot--y"></span> Music
       <span class="mx-sp"></span>
@@ -360,10 +378,10 @@
     </div>
   </footer>
 
-  <!-- hidden audio (for browser/LG/Tizen HTML5 audio) -->
   <audio id="mx-audio" preload="metadata"></audio>
 </section>
 <!-- ===================== END MUSIC VIEW ===================== -->
+
     </div>
   </div>
 

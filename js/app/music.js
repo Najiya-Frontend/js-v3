@@ -1,3 +1,4 @@
+// js/app/music.js  (ES5 / Tizen 4 safe) — Figma-like UI with Albums/Genres grouping
 (function (w) {
   "use strict";
   if (w.MusicPage) return;
@@ -6,19 +7,41 @@
   var bgEl, logoEl;
 
   var playerVisualEl, nowTitleEl, nowArtistEl, audioEl, curEl, durEl, fillEl, knobEl;
-
   var btnPrevEl, btnPlayEl, btnNextEl;
 
+  // NEW UI parts (created if missing)
+  var sideEl, navEl, navTitleEl, scrollbarEl, scrollbarThumbEl;
+
   var active = false;
+
+  // layout
   var cols = 4;
   var focusIndex = 0;
-  var items = [];
+  var navIndex = 0;
   var scrollY = 0;
-  var focusArea = "grid"; // "grid" | "player"
-  var playingIndex = -1;
+  var focusArea = "grid"; // "nav" | "grid" | "player"
+
+  // audio
+  var playingSongIndex = -1; // index into allSongs
   var isPlaying = false;
 
-  var route = null; // current KEY_MUSIC route object
+  // data
+  var route = null;
+  var allSongs = [];       // full song list from backend
+  var display = [];        // current grid list (songs or groups)
+  var mode = "songs";      // "songs" | "albums" | "genres" | "playlists"
+  var drill = null;        // { type:"albums"/"genres"/"playlists", value:"..." } or null
+
+  // grid tile metrics (must match CSS/ensureVisible)
+  var TILE_W = 170, TILE_H = 210, GAP_X = 24, GAP_Y = 34;
+
+
+  var NAV = [
+    { id: "songs", label: "All Songs" },
+    { id: "albums", label: "Albums" },
+    { id: "genres", label: "Genres" },
+    { id: "playlists", label: "Playlists" }
+  ];
 
   function qs(id) { return document.getElementById(id); }
   function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
@@ -30,13 +53,10 @@
   }
 
   function rewriteAssetUrl(url) {
-    // In your data it is already absolute http://192.168...
     url = sanitizeUrl(url);
     if (!url) return "";
     if (/^https?:\/\//i.test(url)) return url;
     if (/^\/\//.test(url)) return "http:" + url;
-
-    // if relative, try TenxApi.HOST
     try {
       if (w.TenxApi && w.TenxApi.HOST) {
         var origin = String(w.TenxApi.HOST).replace(/\/+$/, "");
@@ -52,17 +72,19 @@
     if (viewEl) return;
 
     viewEl = qs("view-music");
+    if (!viewEl) return;
+
     gridEl = qs("mx-grid");
     gridViewportEl = qs("mx-grid-viewport");
     countEl = qs("mx-count");
 
-    bgEl = viewEl ? viewEl.querySelector(".mx-bg") : null;
+    bgEl = viewEl.querySelector(".mx-bg");
     logoEl = qs("mx-brand-logo");
 
     playerVisualEl = qs("mx-player-visual");
     nowTitleEl = qs("mx-nowtitle");
 
-    // ✅ Create an artist line under title if not present
+    // artist line under title
     nowArtistEl = qs("mx-nowartist");
     if (!nowArtistEl && nowTitleEl && nowTitleEl.parentNode) {
       nowArtistEl = document.createElement("div");
@@ -71,8 +93,7 @@
       nowTitleEl.parentNode.insertBefore(nowArtistEl, nowTitleEl.nextSibling);
     }
 
-audioEl = qs("mx-audio");
-
+    audioEl = qs("mx-audio");
     curEl = qs("mx-cur");
     durEl = qs("mx-dur");
     fillEl = qs("mx-player-fill");
@@ -90,13 +111,88 @@ audioEl = qs("mx-audio");
       audioEl.addEventListener("timeupdate", onAudioTime);
       audioEl.addEventListener("ended", onAudioEnded);
       audioEl.addEventListener("loadedmetadata", onAudioTime);
-      audioEl.addEventListener("pause", function(){ isPlaying = false; if (btnPlayEl) btnPlayEl.textContent = "▶"; });
-      audioEl.addEventListener("play", function(){ isPlaying = true; if (btnPlayEl) btnPlayEl.textContent = "⏸"; });
+      audioEl.addEventListener("pause", function () {
+        isPlaying = false;
+        if (btnPlayEl) btnPlayEl.textContent = "▶";
+      });
+      audioEl.addEventListener("play", function () {
+        isPlaying = true;
+        if (btnPlayEl) btnPlayEl.textContent = "⏸";
+      });
+    }
+
+    // ---- NEW: sidebar + scrollbar (create if missing) ----
+    // IMPORTANT: insert inside .mx-left so layout is stable with your HTML
+    var leftWrap = viewEl ? viewEl.querySelector(".mx-left") : null;
+
+    sideEl = qs("mx-side");
+    if (!sideEl) {
+      sideEl = document.createElement("div");
+      sideEl.id = "mx-side";
+      sideEl.className = "mx-side";
+      if (leftWrap) leftWrap.insertBefore(sideEl, leftWrap.firstChild);
+    }
+
+    navTitleEl = qs("mx-side-title");
+    if (!navTitleEl && sideEl) {
+      navTitleEl = document.createElement("div");
+      navTitleEl.id = "mx-side-title";
+      navTitleEl.className = "mx-side-title";
+      navTitleEl.textContent = "Music";
+      sideEl.appendChild(navTitleEl);
+    }
+
+    navEl = qs("mx-nav");
+    if (!navEl && sideEl) {
+      navEl = document.createElement("div");
+      navEl.id = "mx-nav";
+      navEl.className = "mx-nav";
+      sideEl.appendChild(navEl);
+    }
+
+    scrollbarEl = qs("mx-scrollbar");
+    if (!scrollbarEl) {
+      scrollbarEl = document.createElement("div");
+      scrollbarEl.id = "mx-scrollbar";
+      scrollbarEl.className = "mx-scrollbar";
+      if (leftWrap) leftWrap.appendChild(scrollbarEl);
+    }
+
+    scrollbarThumbEl = qs("mx-scrollbar-thumb");
+    if (!scrollbarThumbEl && scrollbarEl) {
+      scrollbarThumbEl = document.createElement("div");
+      scrollbarThumbEl.id = "mx-scrollbar-thumb";
+      scrollbarThumbEl.className = "mx-scrollbar-thumb";
+      scrollbarEl.appendChild(scrollbarThumbEl);
+    }
+
+    renderNav();
+  }
+
+  function renderNav() {
+    if (!navEl) return;
+    navEl.innerHTML = "";
+    for (var i = 0; i < NAV.length; i++) {
+      var b = document.createElement("div");
+      b.className = "mx-navItem";
+      b.setAttribute("data-nav", String(i));
+      b.textContent = NAV[i].label;
+      navEl.appendChild(b);
+    }
+    applyNavFocus();
+  }
+
+  function applyNavFocus() {
+    if (!navEl) return;
+    var kids = navEl.children;
+    for (var i = 0; i < kids.length; i++) {
+      var on = (i === navIndex && focusArea === "nav");
+      kids[i].className = "mx-navItem" + (on ? " is-focus" : "");
     }
   }
 
-  /* -------------------- data mapping -------------------- */
-  function mapLayoutDataToItems(routeObj) {
+  /* -------------------- data mapping (unchanged backend contract) -------------------- */
+  function mapLayoutDataToSongs(routeObj) {
     var out = [];
     if (!routeObj || !routeObj.layout_data || !routeObj.layout_data.length) return out;
 
@@ -118,84 +214,218 @@ audioEl = qs("mx-audio");
     return out;
   }
 
-  /* -------------------- render grid -------------------- */
-  function renderGrid() {
-    if (!gridEl) return;
-    gridEl.innerHTML = "";
+  function normKey(x) {
+    x = (x == null) ? "" : String(x);
+    x = x.replace(/^\s+|\s+$/g, "");
+    return x;
+  }
 
-    var gapX = 34, gapY = 72;
-    var tileW = 240, tileH = 170;
+  function buildGroups(kind) {
+    // kind: "albums" | "genres" | "playlists"
+    var map = {}; // key -> group
+    var list = [];
+    for (var i = 0; i < allSongs.length; i++) {
+      var s = allSongs[i];
+      var k = "";
+      if (kind === "albums") k = normKey(s.album) || "Unknown Album";
+      else if (kind === "genres") k = normKey(s.genre) || "Unknown Genre";
+      else if (kind === "playlists") {
+        // backend doesn't provide playlist field in your current mapping
+        // so we keep a single pseudo playlist for now
+        k = "All";
+      }
 
-    for (var i = 0; i < items.length; i++) {
-      var r = Math.floor(i / cols);
-      var c = i % cols;
+      if (!map[k]) {
+        map[k] = {
+          kind: "group",
+          groupKind: kind,
+          value: k,
+          count: 0,
+          cover: s.cover || "",
+          // for subtitle display
+          sub: ""
+        };
+        list.push(map[k]);
+      }
+      map[k].count++;
+    }
+    // finalize subtitles
+    for (var j = 0; j < list.length; j++) {
+      list[j].sub = String(list[j].count) + (list[j].count === 1 ? " Track" : " Tracks");
+    }
+    return list;
+  }
 
-      var tile = document.createElement("div");
-      tile.className = "mx-tile";
-      tile.setAttribute("data-i", String(i));
-      tile.style.left = (c * (tileW + gapX)) + "px";
-      tile.style.top = (r * (tileH + gapY)) + "px";
+  function buildSongsForDrill(dr) {
+    // dr: {type, value}
+    var out = [];
+    for (var i = 0; i < allSongs.length; i++) {
+      var s = allSongs[i];
+      var ok = false;
+      if (dr.type === "albums") ok = (normKey(s.album) || "Unknown Album") === dr.value;
+      else if (dr.type === "genres") ok = (normKey(s.genre) || "Unknown Genre") === dr.value;
+      else if (dr.type === "playlists") ok = true;
 
-      var cover = document.createElement("div");
-      cover.className = "mx-cover";
+      if (ok) {
+        out.push({ kind: "song", songIndex: i });
+      }
+    }
+    return out;
+  }
 
-      var img = document.createElement("img");
-      img.alt = items[i].title || "";
-      img.src = items[i].cover || "";
-      cover.appendChild(img);
-
-      var name = document.createElement("div");
-      name.className = "mx-name";
-      name.textContent = items[i].title || "";
-
-      tile.appendChild(cover);
-      tile.appendChild(name);
-      gridEl.appendChild(tile);
+  function buildDisplay() {
+    if (mode === "songs") {
+      drill = null;
+      var songs = [];
+      for (var i = 0; i < allSongs.length; i++) songs.push({ kind: "song", songIndex: i });
+      display = songs;
+      return;
     }
 
-    applyFocus();
-    updateCount();
-    ensureVisible();
+    // albums/genres/playlists
+    if (drill) {
+      display = buildSongsForDrill(drill);
+    } else {
+      display = buildGroups(mode);
+    }
   }
 
-  function updateCount() {
-    safeText(countEl, (items.length ? (focusIndex + 1) : 0) + " of " + items.length);
+  /* -------------------- render grid -------------------- */
+function renderGrid() {
+  if (!gridEl) return;
+  gridEl.innerHTML = "";
+
+  for (var i = 0; i < display.length; i++) {
+    var r = Math.floor(i / cols);
+    var c = i % cols;
+
+    var d = display[i];
+    var title = "";
+    var meta = "";
+    var coverUrl = "";
+
+    if (d && d.kind === "group") {
+      title = d.value || "";
+      meta = d.sub || "";
+      coverUrl = d.cover || "";
+    } else if (d && d.kind === "song") {
+      var s = allSongs[d.songIndex] || {};
+      title = s.title || "";
+      meta = s.artist || "";
+      coverUrl = s.cover || "";
+    }
+
+    var tile = document.createElement("div");
+    tile.className = "mx-tile";
+    tile.setAttribute("data-i", String(i));
+    tile.style.left = (c * (TILE_W + GAP_X)) + "px";
+    tile.style.top  = (r * (TILE_H + GAP_Y)) + "px";
+
+    var cover = document.createElement("div");
+    cover.className = "mx-cover";
+
+    var img = document.createElement("img");
+    img.alt = title || "";
+    img.src = coverUrl || "";
+    cover.appendChild(img);
+
+    var name = document.createElement("div");
+    name.className = "mx-name";
+    name.textContent = title || "";
+
+    var m = document.createElement("div");
+    m.className = "mx-meta";
+    m.textContent = meta || "";
+
+    tile.appendChild(cover);
+    tile.appendChild(name);
+    tile.appendChild(m);
+    gridEl.appendChild(tile);
   }
 
-  function applyFocus() {
+  applyGridFocus();
+  updateCount();
+  ensureVisible();
+  updateScrollbar();
+}
+
+
+
+  function applyGridFocus() {
     if (!gridEl) return;
     var kids = gridEl.children;
     for (var i = 0; i < kids.length; i++) {
-      kids[i].className = "mx-tile" + ((i === focusIndex && focusArea === "grid") ? " is-focus" : "");
+      var on = (i === focusIndex && focusArea === "grid");
+      kids[i].className = "mx-tile" + (on ? " is-focus" : "");
     }
   }
 
-  function ensureVisible() {
-    if (!gridEl || !gridViewportEl) return;
+  function updateCount() {
+    // show mode + drill + position
+    var total = display.length;
+    var pos = total ? (focusIndex + 1) : 0;
 
-    var row = Math.floor(focusIndex / cols);
-    var tileH = 170, gapY = 72;
-    var y = row * (tileH + gapY);
+    var label = "";
+    if (mode === "songs") label = "All Songs";
+    else if (mode === "albums") label = drill ? ("Albums • " + drill.value) : "Albums";
+    else if (mode === "genres") label = drill ? ("Genres • " + drill.value) : "Genres";
+    else label = drill ? ("Playlists • " + drill.value) : "Playlists";
 
+    safeText(countEl, label + "   " + pos + " of " + total);
+  }
+
+function ensureVisible() {
+  if (!gridEl || !gridViewportEl) return;
+
+  var row = Math.floor(focusIndex / cols);
+  var y = row * (TILE_H + GAP_Y);
+
+  var vpH = gridViewportEl.clientHeight || 700;
+  var padTop = 10;
+  var padBottom = 120;
+
+  if (y - scrollY < padTop) scrollY = y - padTop;
+  if (y - scrollY > (vpH - padBottom)) scrollY = y - (vpH - padBottom);
+  if (scrollY < 0) scrollY = 0;
+
+  gridEl.style.top = (-scrollY) + "px";
+}
+
+
+  function updateScrollbar() {
+    if (!scrollbarEl || !scrollbarThumbEl || !gridViewportEl) return;
+
+    // compute content height
+    var totalRows = Math.ceil(display.length / cols);
+    var contentH = totalRows * (TILE_H + GAP_Y);
     var vpH = gridViewportEl.clientHeight || 700;
-    var padTop = 10;
-    var padBottom = 80;
 
-    if (y - scrollY < padTop) scrollY = y - padTop;
-    if (y - scrollY > (vpH - padBottom)) scrollY = y - (vpH - padBottom);
-    if (scrollY < 0) scrollY = 0;
+    if (contentH <= vpH + 2) {
+      scrollbarEl.style.display = "none";
+      return;
+    }
+    scrollbarEl.style.display = "block";
 
-    gridEl.style.top = (-scrollY) + "px";
+    var trackH = scrollbarEl.clientHeight || (vpH - 20);
+    var thumbH = Math.max(40, Math.round(trackH * (vpH / contentH)));
+
+    var maxScroll = Math.max(1, contentH - vpH);
+    var t = scrollY / maxScroll;
+    t = Math.max(0, Math.min(1, t));
+
+    var top = Math.round((trackH - thumbH) * t);
+
+    scrollbarThumbEl.style.height = thumbH + "px";
+    scrollbarThumbEl.style.top = top + "px";
   }
 
   /* -------------------- player -------------------- */
-  function setPlayerFromIndex(idx) {
-    idx = clamp(idx, 0, Math.max(0, items.length - 1));
-    var it = items[idx] || {};
+  function setPlayerFromSongIndex(songIdx) {
+    songIdx = clamp(songIdx, 0, Math.max(0, allSongs.length - 1));
+    var it = allSongs[songIdx] || {};
 
     safeText(nowTitleEl, it.title || "—");
     safeText(nowArtistEl, it.artist || "");
-
 
     if (playerVisualEl) {
       var visual = it.cover || "";
@@ -205,13 +435,13 @@ audioEl = qs("mx-audio");
     }
   }
 
-  function playIndex(idx) {
-    idx = clamp(idx, 0, Math.max(0, items.length - 1));
-    var it = items[idx];
+  function playSongIndex(songIdx) {
+    songIdx = clamp(songIdx, 0, Math.max(0, allSongs.length - 1));
+    var it = allSongs[songIdx];
     if (!it || !it.stream) return;
 
-    playingIndex = idx;
-    setPlayerFromIndex(idx);
+    playingSongIndex = songIdx;
+    setPlayerFromSongIndex(songIdx);
 
     try {
       audioEl.src = it.stream;
@@ -221,10 +451,36 @@ audioEl = qs("mx-audio");
     } catch (e) {}
   }
 
+  function playFromGrid() {
+    if (!display.length) return;
+    var d = display[focusIndex];
+    if (!d) return;
+
+    if (d.kind === "group") {
+      drill = { type: d.groupKind, value: d.value };
+      focusIndex = 0;
+      scrollY = 0;
+      buildDisplay();
+      renderGrid();
+      return;
+    }
+
+    playSongIndex(d.songIndex);
+  }
+
   function togglePlay() {
     if (!audioEl) return;
 
-    if (playingIndex < 0) { playIndex(focusIndex); return; }
+    if (playingSongIndex < 0) {
+      // no playing yet => play current focused song if possible
+      if (display.length && display[focusIndex] && display[focusIndex].kind === "song") {
+        playSongIndex(display[focusIndex].songIndex);
+      } else {
+        // if on group, drill first
+        playFromGrid();
+      }
+      return;
+    }
 
     try {
       if (isPlaying) {
@@ -240,17 +496,17 @@ audioEl = qs("mx-audio");
   }
 
   function prevTrack() {
-    if (!items.length) return;
-    var next = (playingIndex >= 0) ? (playingIndex - 1) : (focusIndex - 1);
+    if (!allSongs.length) return;
+    var next = (playingSongIndex >= 0) ? (playingSongIndex - 1) : 0;
     if (next < 0) next = 0;
-    playIndex(next);
+    playSongIndex(next);
   }
 
   function nextTrack() {
-    if (!items.length) return;
-    var next = (playingIndex >= 0) ? (playingIndex + 1) : (focusIndex + 1);
-    if (next > items.length - 1) next = items.length - 1;
-    playIndex(next);
+    if (!allSongs.length) return;
+    var next = (playingSongIndex >= 0) ? (playingSongIndex + 1) : 0;
+    if (next > allSongs.length - 1) next = allSongs.length - 1;
+    playSongIndex(next);
   }
 
   function fmtTime(sec) {
@@ -278,7 +534,22 @@ audioEl = qs("mx-audio");
   function onAudioEnded() {
     isPlaying = false;
     if (btnPlayEl) btnPlayEl.textContent = "▶";
-    if (playingIndex >= 0 && playingIndex < items.length - 1) playIndex(playingIndex + 1);
+    if (playingSongIndex >= 0 && playingSongIndex < allSongs.length - 1) {
+      playSongIndex(playingSongIndex + 1);
+    }
+  }
+
+  /* -------------------- mode switching -------------------- */
+  function setMode(newMode) {
+    mode = newMode || "songs";
+    drill = null;
+    focusIndex = 0;
+    scrollY = 0;
+    buildDisplay();
+    renderGrid();
+
+    // set a nice default player preview
+    if (allSongs.length) setPlayerFromSongIndex(playingSongIndex >= 0 ? playingSongIndex : 0);
   }
 
   /* -------------------- open/close -------------------- */
@@ -291,13 +562,15 @@ audioEl = qs("mx-audio");
     active = true;
     focusArea = "grid";
     focusIndex = 0;
+    navIndex = 0;
     scrollY = 0;
-    playingIndex = -1;
+
+    // keep currently playing if you want; but for stability reset it like before:
+    playingSongIndex = -1;
     isPlaying = false;
 
     viewEl.className = "tx-view is-active";
 
-    // Background and icon (same idea as channels)
     try {
       if (bgEl && route && route.route_bg) {
         bgEl.style.backgroundImage = "url('" + rewriteAssetUrl(route.route_bg) + "')";
@@ -305,14 +578,13 @@ audioEl = qs("mx-audio");
         bgEl.style.backgroundRepeat = "no-repeat";
       }
       if (logoEl && route && route.route_icon) {
-        // optional: show route icon as logo (or keep hotel logo)
+        // optional: route icon as logo
         // logoEl.src = rewriteAssetUrl(route.route_icon);
       }
     } catch (e) {}
 
-    items = mapLayoutDataToItems(route);
-    renderGrid();
-    setPlayerFromIndex(0);
+    allSongs = mapLayoutDataToSongs(route);
+    setMode("songs");
   }
 
   function close() {
@@ -323,39 +595,88 @@ audioEl = qs("mx-audio");
   }
 
   /* -------------------- keys -------------------- */
-  function keyCode(e) { return e && (e.keyCode || e.which) || 0; }
+  function keyCode(e) { return (e && (e.keyCode || e.which)) || 0; }
   function isBack(k) { return (k === 10009 || k === 461 || k === 8 || k === 27 || k === 412 || k === 457); }
+
+  function goBackOneLevel() {
+    if (drill) {
+      drill = null;
+      focusIndex = 0;
+      scrollY = 0;
+      buildDisplay();
+      renderGrid();
+      return true;
+    }
+    return false;
+  }
 
   function onKeyDown(e) {
     if (!active) return false;
 
     var k = keyCode(e);
 
-    if (isBack(k)) { close(); return true; }
+    if (isBack(k)) {
+      if (goBackOneLevel()) return true;
+      close();
+      return true;
+    }
 
-    // OK/ENTER
+    // OK
     if (k === 13) {
-      if (focusArea === "grid") playIndex(focusIndex);
-      else togglePlay();
+      if (focusArea === "nav") {
+        setMode(NAV[navIndex].id);
+        focusArea = "grid";
+        applyNavFocus();
+        applyGridFocus();
+        return true;
+      }
+      if (focusArea === "grid") {
+        playFromGrid();
+        return true;
+      }
+      togglePlay();
       return true;
     }
 
     // LEFT
     if (k === 37) {
-      if (focusArea === "player") { focusArea = "grid"; applyFocus(); return true; }
-      if ((focusIndex % cols) > 0) focusIndex--;
-      applyFocus(); updateCount(); ensureVisible();
+      if (focusArea === "player") {
+        focusArea = "grid";
+        applyNavFocus(); applyGridFocus();
+        return true;
+      }
+      if (focusArea === "grid") {
+        if ((focusIndex % cols) === 0) {
+          focusArea = "nav";
+          applyNavFocus(); applyGridFocus();
+          return true;
+        }
+        focusIndex = clamp(focusIndex - 1, 0, Math.max(0, display.length - 1));
+        applyGridFocus(); updateCount(); ensureVisible(); updateScrollbar();
+        return true;
+      }
+      // nav: stay
       return true;
     }
 
     // RIGHT
     if (k === 39) {
-      if (focusArea === "grid") {
-        if ((focusIndex % cols) === (cols - 1)) { focusArea = "player"; applyFocus(); return true; }
-        focusIndex = clamp(focusIndex + 1, 0, items.length - 1);
-        applyFocus(); updateCount(); ensureVisible();
+      if (focusArea === "nav") {
+        focusArea = "grid";
+        applyNavFocus(); applyGridFocus();
         return true;
       }
+      if (focusArea === "grid") {
+        if ((focusIndex % cols) === (cols - 1) || focusIndex === display.length - 1) {
+          focusArea = "player";
+          applyNavFocus(); applyGridFocus();
+          return true;
+        }
+        focusIndex = clamp(focusIndex + 1, 0, Math.max(0, display.length - 1));
+        applyGridFocus(); updateCount(); ensureVisible(); updateScrollbar();
+        return true;
+      }
+      // player: next
       nextTrack();
       return true;
     }
@@ -363,20 +684,30 @@ audioEl = qs("mx-audio");
     // UP
     if (k === 38) {
       if (focusArea === "player") return true;
-      focusIndex = clamp(focusIndex - cols, 0, items.length - 1);
-      applyFocus(); updateCount(); ensureVisible();
+      if (focusArea === "nav") {
+        navIndex = clamp(navIndex - 1, 0, NAV.length - 1);
+        applyNavFocus();
+        return true;
+      }
+      focusIndex = clamp(focusIndex - cols, 0, Math.max(0, display.length - 1));
+      applyGridFocus(); updateCount(); ensureVisible(); updateScrollbar();
       return true;
     }
 
     // DOWN
     if (k === 40) {
       if (focusArea === "player") return true;
-      focusIndex = clamp(focusIndex + cols, 0, items.length - 1);
-      applyFocus(); updateCount(); ensureVisible();
+      if (focusArea === "nav") {
+        navIndex = clamp(navIndex + 1, 0, NAV.length - 1);
+        applyNavFocus();
+        return true;
+      }
+      focusIndex = clamp(focusIndex + cols, 0, Math.max(0, display.length - 1));
+      applyGridFocus(); updateCount(); ensureVisible(); updateScrollbar();
       return true;
     }
 
-    // media keys optional
+    // media keys
     if (k === 415) { togglePlay(); return true; } // Play
     if (k === 417) { nextTrack(); return true; }  // Next
     if (k === 412) { prevTrack(); return true; }  // Prev
@@ -385,9 +716,9 @@ audioEl = qs("mx-audio");
   }
 
   w.MusicPage = {
-    open: open,      // expects the KEY_MUSIC route object
+    open: open,
     close: close,
     onKeyDown: onKeyDown,
-    isActive: function(){ return active; }
+    isActive: function () { return active; }
   };
 })(window);

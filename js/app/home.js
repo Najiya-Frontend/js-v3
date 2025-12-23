@@ -1,4 +1,4 @@
-// home.js (ES5 / Tizen 4 safe)
+// home.js (ES5 / Tizen 4 safe) - FIXED PARENT_ID LOGIC
 (function () {
   "use strict";
 
@@ -11,13 +11,10 @@
   var prevView = "home";
   var viewTV = document.getElementById("view-tv");
   var viewMusic = document.getElementById("view-music");
-    // Global topbar state (so language switch can re-apply)
+  
   var GUEST_FULL = "";
   var ROOM_NO = "";
   var TEMP_TXT = "";
-
-
-  
 
   var btnContinue = document.getElementById("btn-continue");
   var toggleTV = document.getElementById("toggle-tv");
@@ -30,10 +27,21 @@
   var APP_DATA = null;
   var ROUTES_BY_ATTR = {};
   var ROUTES_LIST = [];
-  var TILE_ROUTE = {}; // tileId -> route object
-  var PAGE_ROUTE_BY_KEY = {}; // KEY_MUSIC -> parent_id 0 / GET_DATALIST route
-  var TILE_ROUTE_BY_KEY = {}; // KEY_MUSIC -> parent_id != 0 / XMAIN_* route
+  var TILE_ROUTE = {};
+  var PAGE_ROUTE_BY_KEY = {};
+  var TILE_ROUTE_BY_KEY = {};
 
+  // ✅ NEW: Define which tiles need backgrounds
+  var TILES_WITH_BACKGROUNDS = [
+    "KEY_OUR_SERVICES",
+    "KEY_HOTEL_SERVICES",
+    "KEY_ATTRACTIONS", 
+    "KEY_VOD",
+    "KEY_FACILITIES",
+    "KEY_DINING_ALL_DAY",
+    "KEY_PRAYER_TIME",
+    "KEY_SPECIAL_OFFERS"
+  ];
 
   var TEXT = {
     en: {
@@ -60,7 +68,6 @@
     try { if (window.console && console.log) console.log.apply(console, arguments); } catch (e) {}
   }
 
-    // ===================== STARTUP RULE (welcome once) =====================
   var LS_WELCOME_SEEN = "tenx_welcome_seen_v1";
 
   function hasSeenWelcome() {
@@ -77,25 +84,21 @@
     el.textContent = (txt == null) ? "" : String(txt);
   }
 
-  function pad2(n) { n = String(n); return n.length < 2 ? ("0" + n) : n; }
+  // function pad2(n) { n = String(n); return n.length < 2 ? ("0" + n) : n; }
 
-function updateClock() {
-  var d = new Date();
+  function updateClock() {
+    var d = new Date();
+    var hh = d.getHours();
+    var mm = d.getMinutes();
+    var time = (hh < 10 ? "0" + hh : "" + hh) + ":" + (mm < 10 ? "0" + mm : "" + mm);
 
-  var hh = d.getHours();
-  var mm = d.getMinutes();
-  var time = (hh < 10 ? "0" + hh : "" + hh) + ":" + (mm < 10 ? "0" + mm : "" + mm);
+    var mons = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var dd = d.getDate();
+    var date = (dd < 10 ? "0" + dd : "" + dd) + " " + mons[d.getMonth()] + " " + d.getFullYear();
 
-  var mons = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  var dd = d.getDate();
-  var date = (dd < 10 ? "0" + dd : "" + dd) + " " + mons[d.getMonth()] + " " + d.getFullYear();
-
-  // ✅ Global topbar ids (only ones that exist now)
-  setText("meta-time", "⏱️ " + time);
-  setText("meta-date", date);
-}
-
-
+    setText("meta-time", "⏱️ " + time);
+    setText("meta-date", date);
+  }
 
   function fitStage() {
     if (!stage) return;
@@ -106,8 +109,6 @@ function updateClock() {
     stage.style.transform = "translate(-50%, -50%) scale(" + s + ")";
   }
 
-
-
   function clearFocus() {
     var els = document.querySelectorAll(".tx-focusable.is-focused");
     var i;
@@ -116,49 +117,41 @@ function updateClock() {
     }
   }
 
-  // ===================== URL REWRITE (admin-portal assets) =====================
-
   function apiOrigin() {
     try {
       if (window.TenxApi && window.TenxApi.HOST) return String(window.TenxApi.HOST).replace(/\/+$/, "");
     } catch (e) {}
     return "";
   }
-function rewriteAssetUrl(url) {
-  url = String(url || "");
-  if (!url) return url;
-  if (url.indexOf("/admin-portal/assets/") < 0) return url;
 
-  var origin = apiOrigin();
-  if (!origin) return url;
+  function rewriteAssetUrl(url) {
+    url = String(url || "");
+    if (!url) return url;
+    if (url.indexOf("/admin-portal/assets/") < 0) return url;
 
-  // Debugging the asset URL before rewriting
-  console.log("Rewriting asset URL:", url);
+    var origin = apiOrigin();
+    if (!origin) return url;
 
-  return url.replace(/^https?:\/\/[^\/]+/i, origin);
-}
-
-
-  // ===================== BRAND LOGO (from backend settings/hotel cover/logo) =====================
-
-function setBrandLogo(url) {
-  url = rewriteAssetUrl(url);
-
-  var img = qs("brand-logo");
-  var txt = qs("brand-text");
-  if (!img || !txt) return;
-
-  if (url) {
-    img.src = url;
-    img.style.display = "block";
-    txt.style.display = "none";
-  } else {
-    try { img.removeAttribute("src"); } catch (e) {}
-    img.style.display = "none";
-    txt.style.display = "block";
+    return url.replace(/^https?:\/\/[^\/]+/i, origin);
   }
-}
 
+  function setBrandLogo(url) {
+    url = rewriteAssetUrl(url);
+
+    var img = qs("brand-logo");
+    var txt = qs("brand-text");
+    if (!img || !txt) return;
+
+    if (url) {
+      img.src = url;
+      img.style.display = "block";
+      txt.style.display = "none";
+    } else {
+      try { img.removeAttribute("src"); } catch (e) {}
+      img.style.display = "none";
+      txt.style.display = "block";
+    }
+  }
 
   function pick(obj, keys) {
     var i, k, v;
@@ -170,73 +163,62 @@ function setBrandLogo(url) {
     }
     return null;
   }
+
   function isLikelyImageUrl(u) {
-  u = String(u || "");
-  if (!u) return false;
-  if (u.charAt(u.length - 1) === "/") return false;        // folder
-  // must end with a common image extension (ignore query string)
-  var bare = u.split("?")[0].toLowerCase();
-  return (
-    bare.indexOf(".png") > -1 ||
-    bare.indexOf(".jpg") > -1 ||
-    bare.indexOf(".jpeg") > -1 ||
-    bare.indexOf(".svg") > -1 ||
-    bare.indexOf(".webp") > -1 ||
-    bare.indexOf(".gif") > -1
-  );
-}
-// ✅ route_bg can sometimes be:
-// 1) normal url string: "http://.../bg.png"
-// 2) filename only: "abc@3x.png"
-// 3) JSON string from DB like: [{"image":"...png","isActive":"true"}]
-// This helper always returns the best usable image/url string.
-function resolveRouteBgValue(routeBg) {
-  var s = routeBg;
-
-  // already an object/array? try to read it
-  if (s && typeof s === "object") {
-    try {
-      if (Object.prototype.toString.call(s) === "[object Array]") {
-        if (s.length && (s[0].image || s[0].url)) return s[0].image || s[0].url;
-      } else {
-        if (s.image || s.url) return s.image || s.url;
-      }
-    } catch (e) {}
-    return "";
+    u = String(u || "");
+    if (!u) return false;
+    if (u.charAt(u.length - 1) === "/") return false;
+    var bare = u.split("?")[0].toLowerCase();
+    return (
+      bare.indexOf(".png") > -1 ||
+      bare.indexOf(".jpg") > -1 ||
+      bare.indexOf(".jpeg") > -1 ||
+      bare.indexOf(".svg") > -1 ||
+      bare.indexOf(".webp") > -1 ||
+      bare.indexOf(".gif") > -1
+    );
   }
 
-  s = String(s || "").replace(/^\s+|\s+$/g, "");
-  if (!s) return "";
+  function resolveRouteBgValue(routeBg) {
+    var s = routeBg;
 
-  // if it looks like JSON text, parse it
-  if (s.charAt(0) === "[" || s.charAt(0) === "{") {
-    try {
-      var obj = JSON.parse(s);
-
-      if (Object.prototype.toString.call(obj) === "[object Array]") {
-        var i;
-        for (i = 0; i < obj.length; i++) {
-          if (!obj[i]) continue;
-          if (String(obj[i].isActive) === "true" || obj[i].isActive === 1 || obj[i].isActive === true) {
-            return obj[i].image || obj[i].url || "";
-          }
+    if (s && typeof s === "object") {
+      try {
+        if (Object.prototype.toString.call(s) === "[object Array]") {
+          if (s.length && (s[0].image || s[0].url)) return s[0].image || s[0].url;
+        } else {
+          if (s.image || s.url) return s.image || s.url;
         }
-        // fallback first
-        if (obj.length) return obj[0].image || obj[0].url || "";
-      } else {
-        return obj.image || obj.url || "";
-      }
-    } catch (e2) {
-      // not valid JSON -> ignore
+      } catch (e) {}
+      return "";
     }
-  }
 
-  // plain string path/url
-  return s;
-}
+    s = String(s || "").replace(/^\s+|\s+$/g, "");
+    if (!s) return "";
+
+    if (s.charAt(0) === "[" || s.charAt(0) === "{") {
+      try {
+        var obj = JSON.parse(s);
+
+        if (Object.prototype.toString.call(obj) === "[object Array]") {
+          var i;
+          for (i = 0; i < obj.length; i++) {
+            if (!obj[i]) continue;
+            if (String(obj[i].isActive) === "true" || obj[i].isActive === 1 || obj[i].isActive === true) {
+              return obj[i].image || obj[i].url || "";
+            }
+          }
+          if (obj.length) return obj[0].image || obj[0].url || "";
+        } else {
+          return obj.image || obj.url || "";
+        }
+      } catch (e2) {}
+    }
+
+    return s;
+  }
 
   function pickHotelLogo(app) {
-    // tries common TenX payload patterns (hotel logo/cover in settings)
     var u =
       pick(app, ["hotel_logo","hotel_logo_url","logo","logo_url"]) ||
       pick(app, ["hotel_cover","hotel_cover_url","cover","cover_url"]);
@@ -254,8 +236,6 @@ function resolveRouteBgValue(routeBg) {
     return u || "";
   }
 
-  // ===================== LANGUAGE =====================
-
   function applyLang() {
     var t = TEXT[currentLang] || TEXT.en;
 
@@ -271,8 +251,6 @@ function resolveRouteBgValue(routeBg) {
     setText("welcome-name", t.welcomeName);
   }
 
-  // ===================== VIEWS / NAV =====================
-
   var welcomeFocusIndex = 0;
   var welcomeFocusEls = [btnContinue, toggleTV, toggleLang];
 
@@ -285,10 +263,10 @@ function resolveRouteBgValue(routeBg) {
 
   var homePos = { r: 0, c: 0 };
   var HOME_NAV = [
-    ["tile-hotelinfo", "tile-roomservice", "tile-movies",      "tile-movies",      "tile-music",   "tile-tv"],
-    ["tile-spa",       "tile-restaurants", "tile-movies",      "tile-movies",      "tile-weather", "tile-clock"],
-    ["tile-dining",    "tile-discover",    "tile-roomcontrol", "tile-cart",        "tile-special", "tile-special"],
-    ["tile-dining",    "tile-prayer",      "tile-messages",    "tile-viewbill",    "tile-special", "tile-special"]
+    ["tile-hotelinfo", "tile-roomservice", "tile-movies", "tile-movies", "tile-music", "tile-tv"],
+    ["tile-spa", "tile-restaurants", "tile-movies", "tile-movies", "tile-weather", "tile-clock"],
+    ["tile-dining", "tile-discover", "tile-roomcontrol", "tile-cart", "tile-special", "tile-special"],
+    ["tile-dining", "tile-prayer", "tile-messages", "tile-viewbill", "tile-special", "tile-special"]
   ];
 
   function setHomeFocusById(id) {
@@ -322,181 +300,163 @@ function resolveRouteBgValue(routeBg) {
     }
     setHomeFocusById(HOME_NAV[nr][nc]);
   }
+
   function setTopbarTheme(viewName) {
-  var tb = qs("tx-topbar");
-  if (!tb) return;
-  tb.className = "tx-topbar tx-topbar--global";
-}
-
-
- function showView(name) {
-  // leaving weather? tell module to hide
-  if (currentView === "weather" && name !== "weather") {
-    if (window.WeatherPage && typeof window.WeatherPage.onHide === "function") {
-      window.WeatherPage.onHide();
-    }
+    var tb = qs("tx-topbar");
+    if (!tb) return;
+    tb.className = "tx-topbar tx-topbar--global";
   }
 
-  // leaving tv? tell module to hide
-  if (currentView === "tv" && name !== "tv") {
-    if (window.TVChannels && typeof window.TVChannels.unmount === "function") {
-      window.TVChannels.unmount();
-    }
-  }
-    // leaving music? tell module to close
-  if (currentView === "music" && name !== "music") {
-    if (window.MusicPage && typeof window.MusicPage.close === "function") {
-      window.MusicPage.close();
-    }
-  }
-  // set topbar theme
-  setTopbarTheme(name);
-
-
-  // ===== TV VIEW =====
-  if (name === "tv") {
-    prevView = currentView || "home";
-    currentView = "tv";
-
-    if (viewWelcome) viewWelcome.className = "tx-view";
-    if (viewHome) viewHome.className = "tx-view";
-    if (viewWeather) viewWeather.className = "tx-view";
-    if (viewTV) viewTV.className = "tx-view is-active";
-
-    // Mount TV Channels
-    // Mount TV Channels (tvchannels.js parses KEY_TV itself from appJson.html_output)
-    try {
-      if (window.TVChannels && typeof window.TVChannels.mount === "function") {
-        window.TVChannels.mount({ appJson: APP_DATA });
+  function showView(name) {
+    if (currentView === "weather" && name !== "weather") {
+      if (window.WeatherPage && typeof window.WeatherPage.onHide === "function") {
+        window.WeatherPage.onHide();
       }
-    } catch (e) {
-      log("Error mounting TV channels: " + (e && e.message ? e.message : e));
     }
 
-
-    return;
-  }
-
-  // ===== WEATHER VIEW =====
-  if (name === "weather") {
-    prevView = currentView || "home";
-    currentView = "weather";
-
-    if (viewWelcome) viewWelcome.className = "tx-view";
-    if (viewHome) viewHome.className = "tx-view";
-    if (viewWeather) viewWeather.className = "tx-view is-active";
-    if (viewTV) viewTV.className = "tx-view";
-    var wRt = PAGE_ROUTE_BY_KEY["KEY_WEATHER"];
-    if (wRt && wRt.route_bg) setPageBg(viewWeather, resolveRouteBgValue(wRt.route_bg));
-
-    if (window.WeatherPage && typeof window.WeatherPage.onShow === "function") {
-      window.WeatherPage.onShow(APP_DATA);
+    if (currentView === "tv" && name !== "tv") {
+      if (window.TVChannels && typeof window.TVChannels.unmount === "function") {
+        window.TVChannels.unmount();
+      }
     }
-    return;
-  }
 
-    // ===== MUSIC VIEW =====
-  if (name === "music") {
-    prevView = currentView || "home";
-    currentView = "music";
+    if (currentView === "music" && name !== "music") {
+      if (window.MusicPage && typeof window.MusicPage.close === "function") {
+        window.MusicPage.close();
+      }
+    }
 
-    if (viewWelcome) viewWelcome.className = "tx-view";
-    if (viewHome) viewHome.className = "tx-view";
-    if (viewWeather) viewWeather.className = "tx-view";
-    if (viewTV) viewTV.className = "tx-view";
-    if (viewMusic) viewMusic.className = "tx-view is-active";
+    setTopbarTheme(name);
 
-    // open Music (needs the KEY_MUSIC route object)
-    try {
-    // ✅ PAGE music route must be parent_id = 0 (GET_DATALIST)
-    var rt = PAGE_ROUTE_BY_KEY["KEY_MUSIC"];
+    if (name === "tv") {
+      prevView = currentView || "home";
+      currentView = "tv";
 
-    if (!rt) {
-      // fallback: pick parent_id=0 manually
-      var i;
-      for (i = 0; i < ROUTES_LIST.length; i++) {
-        if (ROUTES_LIST[i] &&
-            String(ROUTES_LIST[i].route_key || "").toUpperCase() === "KEY_MUSIC" &&
-            String(ROUTES_LIST[i].route_parent_id || "") === "0") {
-          rt = ROUTES_LIST[i];
-          break;
+      if (viewWelcome) viewWelcome.className = "tx-view";
+      if (viewHome) viewHome.className = "tx-view";
+      if (viewWeather) viewWeather.className = "tx-view";
+      if (viewTV) viewTV.className = "tx-view is-active";
+
+      try {
+        if (window.TVChannels && typeof window.TVChannels.mount === "function") {
+          window.TVChannels.mount({ appJson: APP_DATA });
         }
+      } catch (e) {
+        log("Error mounting TV channels: " + (e && e.message ? e.message : e));
+      }
+
+      return;
+    }
+
+    if (name === "weather") {
+      prevView = currentView || "home";
+      currentView = "weather";
+
+      if (viewWelcome) viewWelcome.className = "tx-view";
+      if (viewHome) viewHome.className = "tx-view";
+      if (viewWeather) viewWeather.className = "tx-view is-active";
+      if (viewTV) viewTV.className = "tx-view";
+      
+      var wRt = PAGE_ROUTE_BY_KEY["KEY_WEATHER"];
+      if (wRt && wRt.route_bg) setPageBg(viewWeather, resolveRouteBgValue(wRt.route_bg));
+
+      if (window.WeatherPage && typeof window.WeatherPage.onShow === "function") {
+        window.WeatherPage.onShow(APP_DATA);
+      }
+      return;
+    }
+
+    if (name === "music") {
+      prevView = currentView || "home";
+      currentView = "music";
+
+      if (viewWelcome) viewWelcome.className = "tx-view";
+      if (viewHome) viewHome.className = "tx-view";
+      if (viewWeather) viewWeather.className = "tx-view";
+      if (viewTV) viewTV.className = "tx-view";
+      if (viewMusic) viewMusic.className = "tx-view is-active";
+
+      try {
+        var rt = PAGE_ROUTE_BY_KEY["KEY_MUSIC"];
+
+        if (!rt) {
+          var i;
+          for (i = 0; i < ROUTES_LIST.length; i++) {
+            if (ROUTES_LIST[i] &&
+                String(ROUTES_LIST[i].route_key || "").toUpperCase() === "KEY_MUSIC" &&
+                String(ROUTES_LIST[i].route_parent_id || "") === "0") {
+              rt = ROUTES_LIST[i];
+              break;
+            }
+          }
+        }
+        if (rt && rt.route_bg) setPageBg(viewMusic, resolveRouteBgValue(rt.route_bg));
+
+        if (window.MusicPage && typeof window.MusicPage.open === "function") {
+          window.MusicPage.open(rt);
+        }
+      } catch (e) {
+        log("Error opening music: " + (e && e.message ? e.message : e));
+      }
+
+      return;
+    }
+
+    currentView = name;
+
+    if (viewWeather) viewWeather.className = "tx-view";
+    if (viewTV) viewTV.className = "tx-view";
+    if (viewMusic) viewMusic.className = "tx-view";
+
+    if (name === "home") {
+      if (viewWelcome) viewWelcome.className = "tx-view";
+      if (viewHome) viewHome.className = "tx-view is-active";
+      setHomeFocusById("tile-hotelinfo");
+    } else {
+      if (viewHome) viewHome.className = "tx-view";
+      if (viewWelcome) viewWelcome.className = "tx-view is-active";
+      setWelcomeFocus(0);
+    }
+  }
+
+  function extractChannelsDataFromHtml(html) {
+    html = String(html || "");
+    if (!html) return [];
+
+    var channelList = [];
+    var regex = /<li[^>]*class="[^"]*subnav_item[^"]*"[^>]*data-id="([^"]*)"[^>]*data-name="([^"]*)"[^>]*data-channel-number="([^"]*)"[^>]*data-channel-url="([^"]*)"[^>]*>/gi;
+    var match;
+    
+    while ((match = regex.exec(html)) !== null) {
+      var id = match[1] || "";
+      var name = match[2] || "";
+      var number = match[3] || "";
+      var url = match[4] || "";
+      
+      var liStart = match.index;
+      var liEnd = html.indexOf("</li>", liStart);
+      if (liEnd === -1) liEnd = html.length;
+      
+      var liContent = html.substring(liStart, liEnd);
+      var logoMatch = /<img[^>]+data-src="([^"]*)"/i.exec(liContent);
+      if (!logoMatch) {
+        logoMatch = /<img[^>]+src="([^"]*)"/i.exec(liContent);
+      }
+      var logoUrl = logoMatch ? logoMatch[1] : "";
+
+      if (id && name && url) {
+        channelList.push({
+          id: id,
+          name: name,
+          number: number,
+          url: url,
+          logo: logoUrl
+        });
       }
     }
-    if (rt && rt.route_bg) setPageBg(viewMusic, resolveRouteBgValue(rt.route_bg));
 
-    if (window.MusicPage && typeof window.MusicPage.open === "function") {
-      window.MusicPage.open(rt);
-    }
-
-
-    } catch (e) {
-      log("Error opening music: " + (e && e.message ? e.message : e));
-    }
-
-    return;
+    return channelList;
   }
-
-  // ===== NORMAL VIEWS =====
-  currentView = name;
-
-  // always hide weather and tv when not on them
-  if (viewWeather) viewWeather.className = "tx-view";
-  if (viewTV) viewTV.className = "tx-view";
-  if (viewMusic) viewMusic.className = "tx-view";
-
-
-  if (name === "home") {
-    if (viewWelcome) viewWelcome.className = "tx-view";
-    if (viewHome) viewHome.className = "tx-view is-active";
-    setHomeFocusById("tile-hotelinfo");
-  } else {
-    if (viewHome) viewHome.className = "tx-view";
-    if (viewWelcome) viewWelcome.className = "tx-view is-active";
-    setWelcomeFocus(0);
-  }
-}
-
-function extractChannelsDataFromHtml(html) {
-  html = String(html || "");
-  if (!html) return [];
-
-  var channelList = [];
-  var regex = /<li[^>]*class="[^"]*subnav_item[^"]*"[^>]*data-id="([^"]*)"[^>]*data-name="([^"]*)"[^>]*data-channel-number="([^"]*)"[^>]*data-channel-url="([^"]*)"[^>]*>/gi;
-  var match;
-  
-  while ((match = regex.exec(html)) !== null) {
-    var id = match[1] || "";
-    var name = match[2] || "";
-    var number = match[3] || "";
-    var url = match[4] || "";
-    
-    // Extract logo URL from img tag within this <li>
-    var liStart = match.index;
-    var liEnd = html.indexOf("</li>", liStart);
-    if (liEnd === -1) liEnd = html.length;
-    
-    var liContent = html.substring(liStart, liEnd);
-    var logoMatch = /<img[^>]+data-src="([^"]*)"/i.exec(liContent);
-    if (!logoMatch) {
-      logoMatch = /<img[^>]+src="([^"]*)"/i.exec(liContent);
-    }
-    var logoUrl = logoMatch ? logoMatch[1] : "";
-
-    if (id && name && url) {
-      channelList.push({
-        id: id,
-        name: name,
-        number: number,
-        url: url,
-        logo: logoUrl
-      });
-    }
-  }
-
-  return channelList;
-}
-
 
   function forceWelcomeOnBoot() {
     var h = String(window.location.hash || "");
@@ -504,202 +464,170 @@ function extractChannelsDataFromHtml(html) {
     if (h.toLowerCase().indexOf("#/home") === 0) window.location.hash = "#/welcome";
   }
 
-function onOk() {
-  if (currentView === "welcome") {
-        if (welcomeFocusIndex === 0) {
-      markWelcomeSeen();
-      window.location.hash = "#/home";
+  function onOk() {
+    if (currentView === "welcome") {
+      if (welcomeFocusIndex === 0) {
+        markWelcomeSeen();
+        window.location.hash = "#/home";
+      }
+
+      if (welcomeFocusIndex === 1) {
+        showView("tv");
+        return;
+      }
+      if (welcomeFocusIndex === 2) {
+        changeLang((currentLang === "en") ? "ar" : "en");
+        return;
+      }
+
+      return;
     }
 
-    if (welcomeFocusIndex === 1) {
+    var focused = document.querySelector(".tx-focusable.is-focused");
+    if (!focused) return;
+
+    var tileId = focused.id;
+    var rt = TILE_ROUTE[tileId];
+
+    if (tileId === "tile-weather") {
+      showView("weather");
+      return;
+    }
+    if (tileId === "tile-tv") {
       showView("tv");
       return;
     }
-    if (welcomeFocusIndex === 2) {
-      changeLang((currentLang === "en") ? "ar" : "en");
+    if (tileId === "tile-music") {
+      showView("music");
       return;
     }
 
-    return;
+    if (rt) {
+      alert("Open: " + (rt.route_name || tileId) + " (route_id=" + (rt.route_id || "") + ")");
+      return;
+    }
+
+    alert("Open: " + tileId + " (not mapped yet)");
   }
 
-  var focused = document.querySelector(".tx-focusable.is-focused");
-  if (!focused) return;
+  function onKeyDown(e) {
+    var k = e.keyCode || e.which || 0;
 
-  var tileId = focused.id;
-  var rt = TILE_ROUTE[tileId];
+    var LEFT=37, UP=38, RIGHT=39, DOWN=40, OK=13;
+    var BACK1=8, BACK2=461, BACK3=10009, BACK4=27;
 
-  // ✅ Open Weather page
-  if (tileId === "tile-weather") {
-    showView("weather");
-    return;
-  }
-  // ✅ Open Weather page
-  if (tileId === "tile-tv") {
-    showView("tv");
-    return;
-  }
-    // ✅ Open Music page
-  if (tileId === "tile-music") {
-    showView("music");
-    return;
-  }
+    if (k === 85) {
+      e.preventDefault();
 
+      if (currentView === "weather") {
+        showView(prevView || "home");
+        return;
+      }
+      if (currentView === "music") {
+        showView(prevView || "home");
+        return;
+      }
 
-  if (rt) {
-    alert("Open: " + (rt.route_name || tileId) + " (route_id=" + (rt.route_id || "") + ")");
-    return;
-  }
+      if (currentView === "tv") {
+        if (window.TVChannels && typeof window.TVChannels.handleKeyDown === "function") {
+          if (window.TVChannels.handleKeyDown({ keyCode: 461, which: 461 })) {
+            return;
+          }
+        }
+        showView(prevView || "home");
+        return;
+      }
 
-  alert("Open: " + tileId + " (not mapped yet)");
-}
+      onBack();
+      return;
+    }
 
+    if (k === 82) {
+      e.preventDefault();
+      showView("home");
+      return;
+    }
 
-function onKeyDown(e) {
-  var k = e.keyCode || e.which || 0;
-
-  var LEFT=37, UP=38, RIGHT=39, DOWN=40, OK=13;
-  var BACK1=8, BACK2=461, BACK3=10009, BACK4=27;
-
-  // ✅ U = Back (requested)
-  if (k === 85) {
-    e.preventDefault();
-
-    // Weather: go back to previous view
     if (currentView === "weather") {
-      showView(prevView || "home");
-      return;
-    }
-        // Music: go back to previous view
-    if (currentView === "music") {
-      showView(prevView || "home");
+      if (window.WeatherPage && typeof window.WeatherPage.handleKey === "function") {
+        if (window.WeatherPage.handleKey(k)) { e.preventDefault(); return; }
+      }
+
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+
+      if (k === OK) { e.preventDefault(); return; }
+
       return;
     }
 
-    // TV: if fullscreen -> exit fullscreen FIRST (stay on TV page)
     if (currentView === "tv") {
       if (window.TVChannels && typeof window.TVChannels.handleKeyDown === "function") {
-        // send a BACK key to TVChannels so it exits fullscreen
-        if (window.TVChannels.handleKeyDown({ keyCode: 461, which: 461 })) {
-          return; // fullscreen closed, still on TV channels page ✅
-        }
+        if (window.TVChannels.handleKeyDown(e)) { e.preventDefault(); return; }
       }
-      // not fullscreen => now close TV page
-      showView(prevView || "home");
+
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+
+      if (k === OK) { e.preventDefault(); return; }
+
       return;
     }
 
-    // Normal views
-    onBack();
-    return;
-  }
+    if (currentView === "music") {
+      if (window.MusicPage && typeof window.MusicPage.onKeyDown === "function") {
+        if (window.MusicPage.onKeyDown(e)) { e.preventDefault(); return; }
+      }
 
-  // ✅ R = Home (requested)
-  if (k === 82) {
-    e.preventDefault();
-    showView("home");
-    return;
-  }
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
 
-  // ===============================
-  // 1) WEATHER: delegate FIRST
-  // ===============================
-  if (currentView === "weather") {
-    if (window.WeatherPage && typeof window.WeatherPage.handleKey === "function") {
-      if (window.WeatherPage.handleKey(k)) { e.preventDefault(); return; }
+      if (k === OK) { e.preventDefault(); return; }
+
+      return;
     }
 
-    // If module didn't consume BACK, close weather
+    if (k === OK) { e.preventDefault(); onOk(); return; }
+
     if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
       e.preventDefault();
-      showView(prevView || "home");
+      onBack();
       return;
     }
 
-    // Do not let home onOk run in weather
-    if (k === OK) { e.preventDefault(); return; }
-
-    return;
-  }
-
-  // ===============================
-  // 2) TV: delegate FIRST
-  // ===============================
-  if (currentView === "tv") {
-    if (window.TVChannels && typeof window.TVChannels.handleKeyDown === "function") {
-      if (window.TVChannels.handleKeyDown(e)) { e.preventDefault(); return; }
-    }
-
-    // If TV didn't consume BACK, close TV view
-    if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
-      e.preventDefault();
-      showView(prevView || "home");
+    if (currentView === "welcome") {
+      if (k === DOWN) { if (welcomeFocusIndex === 0) setWelcomeFocus(1); return; }
+      if (k === UP) { if (welcomeFocusIndex !== 0) setWelcomeFocus(0); return; }
+      if (k === LEFT || k === RIGHT) {
+        if (welcomeFocusIndex === 1 && k === RIGHT) setWelcomeFocus(2);
+        else if (welcomeFocusIndex === 2 && k === LEFT) setWelcomeFocus(1);
+        return;
+      }
       return;
     }
 
-    // Do not let home onOk run in TV
-    if (k === OK) { e.preventDefault(); return; }
-
-    return;
+    if (k === LEFT) { e.preventDefault(); moveHome(0,-1); return; }
+    if (k === RIGHT) { e.preventDefault(); moveHome(0, 1); return; }
+    if (k === UP) { e.preventDefault(); moveHome(-1,0); return; }
+    if (k === DOWN) { e.preventDefault(); moveHome( 1,0); return; }
   }
-    // ===============================
-  // 2.5) MUSIC: delegate FIRST
-  // ===============================
-  if (currentView === "music") {
-    if (window.MusicPage && typeof window.MusicPage.onKeyDown === "function") {
-      if (window.MusicPage.onKeyDown(e)) { e.preventDefault(); return; }
+
+  function onBack() {
+    if (currentView === "home") {
+      showView("welcome");
+    } else {
+      showView("home");
     }
-
-    // If module didn't consume BACK, close music
-    if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
-      e.preventDefault();
-      showView(prevView || "home");
-      return;
-    }
-
-    // Do not let home onOk run in music
-    if (k === OK) { e.preventDefault(); return; }
-
-    return;
   }
-
-  // ===============================
-  // 3) NORMAL VIEWS: OK / BACK
-  // ===============================
-  if (k === OK) { e.preventDefault(); onOk(); return; }
-
-  if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
-    e.preventDefault();
-    onBack();
-    return;
-  }
-
-  // ===============================
-  // 4) Welcome navigation
-  // ===============================
-  if (currentView === "welcome") {
-    if (k === DOWN) { if (welcomeFocusIndex === 0) setWelcomeFocus(1); return; }
-    if (k === UP)   { if (welcomeFocusIndex !== 0) setWelcomeFocus(0); return; }
-    if (k === LEFT || k === RIGHT) {
-      if (welcomeFocusIndex === 1 && k === RIGHT) setWelcomeFocus(2);
-      else if (welcomeFocusIndex === 2 && k === LEFT) setWelcomeFocus(1);
-      return;
-    }
-    return;
-  }
-
-  // ===============================
-  // 5) Home navigation
-  // ===============================
-  if (k === LEFT)  { e.preventDefault(); moveHome(0,-1); return; }
-  if (k === RIGHT) { e.preventDefault(); moveHome(0, 1); return; }
-  if (k === UP)    { e.preventDefault(); moveHome(-1,0); return; }
-  if (k === DOWN)  { e.preventDefault(); moveHome( 1,0); return; }
-}
-
-
-
-  // ===================== APP_JSON PARSING / UI HYDRATE =====================
 
   function normalizeRoutes(app) {
     var r = app && (app.routes || app.route_list || app.menu || app.menus || app.routeData || app.route_data);
@@ -732,8 +660,6 @@ function onKeyDown(e) {
     return null;
   }
 
-  // ===================== html_output helpers =====================
-
   function slicePageFromHtmlOutput(html, keyId) {
     html = String(html || "");
     if (!html) return "";
@@ -762,7 +688,6 @@ function onKeyDown(e) {
     return raw;
   }
 
-  // pick LAST match (so overrides win)
   function extractMenuIconFromHomeByCode(homeHtml, code) {
     homeHtml = String(homeHtml || "");
     code = String(code || "");
@@ -811,79 +736,75 @@ function onKeyDown(e) {
 
     return "";
   }
+
   function extractTileBgFromHomeByCode(homeHtml, code) {
-  homeHtml = String(homeHtml || "");
-  code = String(code || "");
-  if (!homeHtml || !code) return "";
+    homeHtml = String(homeHtml || "");
+    code = String(code || "");
+    if (!homeHtml || !code) return "";
 
-  var up = code.toUpperCase();
-  var needle1 = 'data-code="' + up + '"';
-  var needle2 = "data-code='" + up + "'";
+    var up = code.toUpperCase();
+    var needle1 = 'data-code="' + up + '"';
+    var needle2 = "data-code='" + up + "'";
 
-  var lastIdx = -1, idx = -1;
-  idx = homeHtml.toUpperCase().indexOf(needle1.toUpperCase());
-  while (idx >= 0) { lastIdx = idx; idx = homeHtml.toUpperCase().indexOf(needle1.toUpperCase(), idx + 1); }
+    var lastIdx = -1, idx = -1;
+    idx = homeHtml.toUpperCase().indexOf(needle1.toUpperCase());
+    while (idx >= 0) { lastIdx = idx; idx = homeHtml.toUpperCase().indexOf(needle1.toUpperCase(), idx + 1); }
 
-  if (lastIdx < 0) {
-    idx = homeHtml.toUpperCase().indexOf(needle2.toUpperCase());
-    while (idx >= 0) { lastIdx = idx; idx = homeHtml.toUpperCase().indexOf(needle2.toUpperCase(), idx + 1); }
-  }
-  if (lastIdx < 0) return "";
+    if (lastIdx < 0) {
+      idx = homeHtml.toUpperCase().indexOf(needle2.toUpperCase());
+      while (idx >= 0) { lastIdx = idx; idx = homeHtml.toUpperCase().indexOf(needle2.toUpperCase(), idx + 1); }
+    }
+    if (lastIdx < 0) return "";
 
-  var liStart = homeHtml.lastIndexOf("<li", lastIdx);
-  if (liStart < 0) return "";
-  var liEnd = homeHtml.indexOf("</li", lastIdx);
-  if (liEnd < 0) liEnd = homeHtml.length;
+    var liStart = homeHtml.lastIndexOf("<li", lastIdx);
+    if (liStart < 0) return "";
+    var liEnd = homeHtml.indexOf("</li", lastIdx);
+    if (liEnd < 0) liEnd = homeHtml.length;
 
-  var liHtml = homeHtml.slice(liStart, liEnd);
+    var liHtml = homeHtml.slice(liStart, liEnd);
 
-  // try inline style background-image:url(...)
-  var m = /background-image\s*:\s*url\(([^)]+)\)/i.exec(liHtml);
-  if (m && m[1]) {
-    var raw = String(m[1]).replace(/^\s+|\s+$/g, "").replace(/^[\"']/, "").replace(/[\"']$/, "");
-    return raw;
-  }
+    var m = /background-image\s*:\s*url\(([^)]+)\)/i.exec(liHtml);
+    if (m && m[1]) {
+      var raw = String(m[1]).replace(/^\s+|\s+$/g, "").replace(/^[\"']/, "").replace(/[\"']$/, "");
+      return raw;
+    }
 
-  // try data-bg / data-background
-  m = /data-(?:bg|background)\s*=\s*[\"']([^"']+)[\"']/i.exec(liHtml);
-  if (m && m[1]) return m[1];
+    m = /data-(?:bg|background)\s*=\s*[\"']([^"']+)[\"']/i.exec(liHtml);
+    if (m && m[1]) return m[1];
 
-  return "";
-}
-
-function extractTileBgFromHomeByRouteAttr(homeHtml, routeAttr) {
-  // fallback: just reuse code version by searching the LI chunk around routeAttr token
-  homeHtml = String(homeHtml || "");
-  routeAttr = String(routeAttr || "");
-  if (!homeHtml || !routeAttr) return "";
-
-  var token = routeAttr.toLowerCase();
-  var upper = homeHtml.toLowerCase();
-  var last = -1, at = upper.indexOf(token);
-  while (at >= 0) { last = at; at = upper.indexOf(token, at + 1); }
-  if (last < 0) return "";
-
-  var liStart = homeHtml.lastIndexOf("<li", last);
-  if (liStart < 0) return "";
-  var liEnd = homeHtml.indexOf("</li", last);
-  if (liEnd < 0) liEnd = homeHtml.length;
-
-  var liHtml = homeHtml.slice(liStart, liEnd);
-
-  var m = /background-image\s*:\s*url\(([^)]+)\)/i.exec(liHtml);
-  if (m && m[1]) {
-    var raw = String(m[1]).replace(/^\s+|\s+$/g, "").replace(/^[\"']/, "").replace(/[\"']$/, "");
-    return raw;
+    return "";
   }
 
-  m = /data-(?:bg|background)\s*=\s*[\"']([^"']+)[\"']/i.exec(liHtml);
-  if (m && m[1]) return m[1];
+  function extractTileBgFromHomeByRouteAttr(homeHtml, routeAttr) {
+    homeHtml = String(homeHtml || "");
+    routeAttr = String(routeAttr || "");
+    if (!homeHtml || !routeAttr) return "";
 
-  return "";
-}
+    var token = routeAttr.toLowerCase();
+    var upper = homeHtml.toLowerCase();
+    var last = -1, at = upper.indexOf(token);
+    while (at >= 0) { last = at; at = upper.indexOf(token, at + 1); }
+    if (last < 0) return "";
 
+    var liStart = homeHtml.lastIndexOf("<li", last);
+    if (liStart < 0) return "";
+    var liEnd = homeHtml.indexOf("</li", last);
+    if (liEnd < 0) liEnd = homeHtml.length;
 
-  // pull icon by route_attr token in class=""
+    var liHtml = homeHtml.slice(liStart, liEnd);
+
+    var m = /background-image\s*:\s*url\(([^)]+)\)/i.exec(liHtml);
+    if (m && m[1]) {
+      var raw = String(m[1]).replace(/^\s+|\s+$/g, "").replace(/^[\"']/, "").replace(/[\"']$/, "");
+      return raw;
+    }
+
+    m = /data-(?:bg|background)\s*=\s*[\"']([^"']+)[\"']/i.exec(liHtml);
+    if (m && m[1]) return m[1];
+
+    return "";
+  }
+
   function extractMenuIconFromHomeByRouteAttr(homeHtml, routeAttr) {
     homeHtml = String(homeHtml || "");
     routeAttr = String(routeAttr || "");
@@ -1004,88 +925,73 @@ function extractTileBgFromHomeByRouteAttr(homeHtml, routeAttr) {
       if (key) ROUTES_BY_ATTR[key] = r;
     }
   }
-function getRouteKeyFromTests(tests) {
-  var i, t;
-  for (i = 0; i < (tests ? tests.length : 0); i++) {
-    t = String(tests[i] || "");
-    if (t.toLowerCase().indexOf("key_") === 0) return t.toUpperCase(); // e.g. KEY_MUSIC
+
+  function getRouteKeyFromTests(tests) {
+    var i, t;
+    for (i = 0; i < (tests ? tests.length : 0); i++) {
+      t = String(tests[i] || "");
+      if (t.toLowerCase().indexOf("key_") === 0) return t.toUpperCase();
+    }
+    return "";
   }
-  return "";
-}
 
-function findByKey(routeKey, wantTile) {
-  // wantTile=true => parent_id != 0
-  // wantTile=false => parent_id == 0
-  var i, rt, k, pid;
-  routeKey = String(routeKey || "").toUpperCase();
-  if (!routeKey) return null;
+  // ✅ FIXED: Now correctly separates parent_id 211 (tile styling) from parent_id 0 (page logic)
+  function findByKey(routeKey, wantTile) {
+    var i, rt, k, pid;
+    routeKey = String(routeKey || "").toUpperCase();
+    if (!routeKey) return null;
 
-  for (i = 0; i < ROUTES_LIST.length; i++) {
-    rt = ROUTES_LIST[i];
-    if (!rt) continue;
+    for (i = 0; i < ROUTES_LIST.length; i++) {
+      rt = ROUTES_LIST[i];
+      if (!rt) continue;
 
-    k = String(rt.route_key || "").toUpperCase();
-    if (k !== routeKey) continue;
+      k = String(rt.route_key || "").toUpperCase();
+      if (k !== routeKey) continue;
 
-    pid = String(rt.route_parent_id || "");
-    if (wantTile) {
-      if (pid !== "0") return rt;
-    } else {
-      if (pid === "0") return rt;
+      pid = String(rt.route_parent_id || "");
+      
+      // ✅ wantTile=true => parent_id 211 (tile styling with backgrounds/icons)
+      // ✅ wantTile=false => parent_id 0 (page content only)
+      if (wantTile) {
+        if (pid === "211") return rt;  // FIXED: Look for parent_id 211
+      } else {
+        if (pid === "0") return rt;
+      }
+    }
+    return null;
+  }
+
+  function buildRouteKeyLookups() {
+    PAGE_ROUTE_BY_KEY = {};
+    TILE_ROUTE_BY_KEY = {};
+
+    var i, rt, k, pid;
+
+    for (i = 0; i < ROUTES_LIST.length; i++) {
+      rt = ROUTES_LIST[i];
+      if (!rt) continue;
+
+      k = String(rt.route_key || "").toUpperCase();
+      if (!k) continue;
+
+      pid = String(rt.route_parent_id == null ? "" : rt.route_parent_id);
+      pid = pid.replace(/^\s+|\s+$/g, "");
+
+      if (pid === "0") {
+        PAGE_ROUTE_BY_KEY[k] = rt;
+      } else if (pid === "211") {  // ✅ FIXED: Only parent_id 211 for tile styling
+        TILE_ROUTE_BY_KEY[k] = rt;
+      }
     }
   }
-  return null;
-}
-
-function buildRouteKeyLookups() {
-  PAGE_ROUTE_BY_KEY = {};
-  TILE_ROUTE_BY_KEY = {};
-
-  var i, rt, k, pid;
-
-  for (i = 0; i < ROUTES_LIST.length; i++) {
-    rt = ROUTES_LIST[i];
-    if (!rt) continue;
-
-    k = String(rt.route_key || "").toUpperCase();
-    if (!k) continue;
-
-    pid = String(rt.route_parent_id == null ? "" : rt.route_parent_id);
-    pid = pid.replace(/^\s+|\s+$/g, ""); // ✅ trim spaces
-
-    if (pid === "0") {
-      PAGE_ROUTE_BY_KEY[k] = rt;     // parent_id=0 => page route
-    } else {
-      TILE_ROUTE_BY_KEY[k] = rt;     // parent_id!=0 => tile route
-    }
-  }
-}
-
-
 
   function hydrateFromRoutes(app) {
     if (!app) return;
 
-    // Set logo early (welcome + home headers)
     setBrandLogo(pickHotelLogo(app));
 
     buildRoutesLookup(app);
     buildRouteKeyLookups();
-    log("KEY_MUSIC tileRt=", !!TILE_ROUTE_BY_KEY["KEY_MUSIC"], "pageRt=", !!PAGE_ROUTE_BY_KEY["KEY_MUSIC"]);
-
-
-    (function () {
-      var i, rt;
-      for (i = 0; i < ROUTES_LIST.length; i++) {
-        rt = ROUTES_LIST[i];
-        if (rt && String(rt.route_key || "").toUpperCase() === "KEY_MUSIC") {
-          log("[KEY_MUSIC route in payload]", "id=", rt.route_id, "parent=", rt.route_parent_id, "bg=", rt.route_bg);
-        }
-      }
-    })();
-
-
-
 
     var htmlOutput = app.html_output || app.html || "";
     var htmlWelcome = slicePageFromHtmlOutput(htmlOutput, "KEY_WELCOME");
@@ -1099,39 +1005,32 @@ function buildRouteKeyLookups() {
 
     var fallbackCover = (app.hotel_covers && app.hotel_covers.length) ? app.hotel_covers[0] : "";
 
-      setPageBg(viewWelcome,
-        (welcomeRoute && welcomeRoute.route_bg) ? resolveRouteBgValue(welcomeRoute.route_bg) :
-        (htmlWelcomeBg ? htmlWelcomeBg : fallbackCover)
-      );
+    setPageBg(viewWelcome,
+      (welcomeRoute && welcomeRoute.route_bg) ? resolveRouteBgValue(welcomeRoute.route_bg) :
+      (htmlWelcomeBg ? htmlWelcomeBg : fallbackCover)
+    );
 
-      setPageBg(viewHome,
-        (homeRoute && homeRoute.route_bg) ? resolveRouteBgValue(homeRoute.route_bg) :
-        (htmlHomeBg ? htmlHomeBg : fallbackCover)
-      );
+    setPageBg(viewHome,
+      (homeRoute && homeRoute.route_bg) ? resolveRouteBgValue(homeRoute.route_bg) :
+      (htmlHomeBg ? htmlHomeBg : fallbackCover)
+    );
 
- // ===================== PAGE BACKGROUNDS (parent_id = 0 only) =====================
-// Function to apply page background (parent_id == 0)
-function applyPageBg(viewEl, routeKey) {
-  var pageRt = PAGE_ROUTE_BY_KEY[routeKey] || findByKey(routeKey, false); // Get route for page (parent_id == 0)
-  var pageBg = pageRt ? resolveRouteBgValue(pageRt.route_bg) : "";
+    // ✅ Apply page backgrounds for weather and music (parent_id 0 only)
+    function applyPageBg(viewEl, routeKey) {
+      var pageRt = PAGE_ROUTE_BY_KEY[routeKey] || findByKey(routeKey, false);
+      var pageBg = pageRt ? resolveRouteBgValue(pageRt.route_bg) : "";
 
-  if (isLikelyImageUrl(pageBg)) {
-    setPageBg(viewEl, pageBg); // Apply background to the page
-  } else {
-    // Optionally, clear if no background is found
-    viewEl.style.backgroundImage = "";
-  }
-}
+      if (isLikelyImageUrl(pageBg)) {
+        setPageBg(viewEl, pageBg);
+      }
+    }
 
-// Apply page background for weather and music pages
-applyPageBg(viewWeather, "KEY_WEATHER");
-applyPageBg(viewMusic, "KEY_MUSIC");
-
-
+    applyPageBg(viewWeather, "KEY_WEATHER");
+    applyPageBg(viewMusic, "KEY_MUSIC");
 
     var guestTitle = app.guest_title || "";
     var guestFirst = app.guest_first_name || "";
-    var guestLast  = app.guest_last_name || "";
+    var guestLast = app.guest_last_name || "";
 
     var guestFull = (guestTitle + " " + guestFirst + " " + guestLast)
       .replace(/\s+/g, " ")
@@ -1139,24 +1038,16 @@ applyPageBg(viewMusic, "KEY_MUSIC");
 
     var roomNumber = app.room_number || app.room_no || "101";
 
-    // store global values (optional, but good)
     GUEST_FULL = guestFull || "";
     ROOM_NO = roomNumber || "";
 
-    // ✅ ONLY global topbar ids
     setText("meta-room", "Room " + (ROOM_NO || "—"));
     setText("meta-welcome", GUEST_FULL ? ("Welcome, " + GUEST_FULL) : "Welcome, —");
 
-    // ✅ welcome screen big name only (not topbar)
     if (GUEST_FULL) {
       TEXT.en.welcomeName = GUEST_FULL.toUpperCase();
       setText("welcome-name", TEXT.en.welcomeName);
     }
-
-
-
-
-    
 
     if (app.language_attr) {
       var la = toLowerSafe(app.language_attr);
@@ -1166,128 +1057,137 @@ applyPageBg(viewMusic, "KEY_MUSIC");
 
     TILE_ROUTE = {};
 
-function clearTileBg(tileId) {
-  var tEl = qs(tileId);
-  if (!tEl) return;
-  tEl.style.backgroundImage = "";
-  tEl.style.backgroundSize = "";
-  tEl.style.backgroundPosition = "";
-}
-function mapTile(tileId, tests, fallbackLabel, isBigIcon, preferredAttrUpper) {
-  var routeKey = getRouteKeyFromTests(tests); // e.g. "KEY_MUSIC"
-  var tileRt = null;  // parent_id != 0 (tile styling)
-  var pageRt = null;  // parent_id == 0 (page logic)
+    // ✅ FIXED mapTile: Now correctly handles parent_id 211 vs parent_id 0
+    function mapTile(tileId, tests, fallbackLabel, isBigIcon, preferredAttrUpper) {
+      var routeKey = getRouteKeyFromTests(tests);
+      var tileRt = null;  // parent_id 211 (tile styling)
+      var pageRt = null;  // parent_id 0 (page logic)
 
-  // Resolve both variants by KEY_*
-  if (routeKey) {
-    tileRt = (TILE_ROUTE_BY_KEY && TILE_ROUTE_BY_KEY[routeKey]) ? TILE_ROUTE_BY_KEY[routeKey] : findByKey(routeKey, true);
-    pageRt = (PAGE_ROUTE_BY_KEY && PAGE_ROUTE_BY_KEY[routeKey]) ? PAGE_ROUTE_BY_KEY[routeKey] : findByKey(routeKey, false);
-  }
-
-  // Fallback fuzzy route (but do NOT let it decide tile bg)
-  var fuzzy = findRoute(ROUTES_LIST, tests);
-  if (!pageRt && fuzzy && String(fuzzy.route_parent_id || "") === "0") pageRt = fuzzy;
-  if (!tileRt && fuzzy && String(fuzzy.route_parent_id || "") !== "0") tileRt = fuzzy;
-
-  // What route should clicking/OK represent? -> PAGE route (parent 0)
-  // (If pageRt missing, fall back to whatever exists)
-  var rtForAction = pageRt || tileRt || fuzzy || null;
-  if (rtForAction) TILE_ROUTE[tileId] = rtForAction;
-
-  // Label: prefer tile label (usually matches menu tile naming), else page label
-  var labelRt = tileRt || pageRt || fuzzy;
-  if (labelRt && labelRt.route_name) setTileLabel(tileId, labelRt.route_name);
-  else if (fallbackLabel) setTileLabel(tileId, fallbackLabel);
-
-  // =========================
-  // TILE BACKGROUND (IMPORTANT)
-  // =========================
-  // Only use TILE variant bg (parent != 0). Never use pageRt bg for the tile.
-  var tileBg = "";
-  if (tileRt) {
-    tileBg = resolveRouteBgValue(pick(tileRt, ["route_bg","route_cover","cover","bg","background"]));
-  }
-
-  // If tile route bg missing, try extract from html_home itself (many TenX payloads have tile bg there)
-  if (!tileBg) {
-    var attr = preferredAttrUpper ? String(preferredAttrUpper || "").toUpperCase() : String((tileRt && tileRt.route_attr) || (pageRt && pageRt.route_attr) || "");
-    if (attr) tileBg = extractTileBgFromHomeByRouteAttr(htmlHome, attr);
-
-    if (!tileBg) {
-      var i, code;
-      for (i = 0; i < tests.length; i++) {
-        code = String(tests[i] || "");
-        if (code.toLowerCase().indexOf("key_") === 0) {
-          tileBg = extractTileBgFromHomeByCode(htmlHome, code);
-          if (tileBg) break;
+      // ✅ Check if this tile needs backgrounds
+      var needsBg = false;
+      if (routeKey) {
+        for (var idx = 0; idx < TILES_WITH_BACKGROUNDS.length; idx++) {
+          if (TILES_WITH_BACKGROUNDS[idx] === routeKey) {
+            needsBg = true;
+            break;
+          }
         }
       }
-    }
-  }
 
-  if (tileBg) setTileBg(tileId, tileBg);
-
-  // =========================
-  // TILE ICON (same logic as before)
-  // =========================
-  var iconUrl = "";
-  var attr2 = preferredAttrUpper ? String(preferredAttrUpper || "").toUpperCase()
-                                 : String(((tileRt && tileRt.route_attr) || (pageRt && pageRt.route_attr) || "")).toUpperCase();
-
-  if (attr2) iconUrl = extractMenuIconFromHomeByRouteAttr(htmlHome, attr2);
-
-  if (!iconUrl) {
-    var j, code2;
-    for (j = 0; j < tests.length; j++) {
-      code2 = String(tests[j] || "");
-      if (code2.toLowerCase().indexOf("key_") === 0) {
-        iconUrl = extractMenuIconFromHomeByCode(htmlHome, code2);
-        if (iconUrl) break;
+      // Resolve both variants by KEY_*
+      if (routeKey) {
+        if (needsBg) {
+          tileRt = TILE_ROUTE_BY_KEY[routeKey] || findByKey(routeKey, true);
+        }
+        pageRt = PAGE_ROUTE_BY_KEY[routeKey] || findByKey(routeKey, false);
       }
+
+      // Fallback fuzzy route (legacy support)
+      var fuzzy = findRoute(ROUTES_LIST, tests);
+
+      // What route should clicking/OK represent? -> PAGE route (parent 0)
+      var rtForAction = pageRt || fuzzy || null;
+      if (rtForAction) TILE_ROUTE[tileId] = rtForAction;
+
+      // ===== LABEL =====
+      var labelRt = pageRt || fuzzy;  // Use parent_id 0 for labels
+      if (labelRt && labelRt.route_name) {
+        setTileLabel(tileId, labelRt.route_name);
+      } else if (fallbackLabel) {
+        setTileLabel(tileId, fallbackLabel);
+      }
+
+      // ===== BACKGROUND (only for tiles that need it) =====
+      if (needsBg) {
+        var tileBg = "";
+        
+        // 1. Try parent_id 211 first (tile styling)
+        if (tileRt) {
+          tileBg = resolveRouteBgValue(pick(tileRt, ["route_bg","route_cover","cover","bg","background"]));
+        }
+
+        // 2. Fallback to html_home extraction
+        if (!tileBg) {
+          var attr = preferredAttrUpper ? String(preferredAttrUpper || "").toUpperCase() : 
+                     String((tileRt && tileRt.route_attr) || (pageRt && pageRt.route_attr) || "");
+          if (attr) tileBg = extractTileBgFromHomeByRouteAttr(htmlHome, attr);
+
+          if (!tileBg) {
+            var i, code;
+            for (i = 0; i < tests.length; i++) {
+              code = String(tests[i] || "");
+              if (code.toLowerCase().indexOf("key_") === 0) {
+                tileBg = extractTileBgFromHomeByCode(htmlHome, code);
+                if (tileBg) break;
+              }
+            }
+          }
+        }
+
+        // 3. Final fallback to parent_id 0 if still no background
+        if (!tileBg && pageRt) {
+          tileBg = resolveRouteBgValue(pick(pageRt, ["route_bg","route_cover","cover","bg","background"]));
+        }
+
+        if (tileBg) setTileBg(tileId, tileBg);
+      }
+
+      // ===== ICON =====
+      var iconUrl = "";
+      
+      // 1. Try parent_id 211 first (tile styling)
+      if (tileRt) {
+        iconUrl = pick(tileRt, ["route_icon","icon","icon_url"]);
+      }
+
+      // 2. Try html_home extraction
+      if (!iconUrl) {
+        var attr2 = preferredAttrUpper ? String(preferredAttrUpper || "").toUpperCase() :
+                    String(((tileRt && tileRt.route_attr) || (pageRt && pageRt.route_attr) || "")).toUpperCase();
+
+        if (attr2) iconUrl = extractMenuIconFromHomeByRouteAttr(htmlHome, attr2);
+
+        if (!iconUrl) {
+          var j, code2;
+          for (j = 0; j < tests.length; j++) {
+            code2 = String(tests[j] || "");
+            if (code2.toLowerCase().indexOf("key_") === 0) {
+              iconUrl = extractMenuIconFromHomeByCode(htmlHome, code2);
+              if (iconUrl) break;
+            }
+          }
+        }
+      }
+
+      // 3. Final fallback to parent_id 0
+      if (!iconUrl && pageRt) {
+        iconUrl = pick(pageRt, ["route_icon","icon","icon_url"]);
+      }
+
+      if (!isLikelyImageUrl(iconUrl)) iconUrl = "";
+
+      if (iconUrl) setTileIcon(tileId, iconUrl, !!isBigIcon);
     }
-  }
 
-  if (!iconUrl) {
-    // Prefer tile route icon if available
-    iconUrl = pick(tileRt || pageRt || fuzzy, ["route_icon","icon","icon_url"]);
-  }
-
-  if (!isLikelyImageUrl(iconUrl)) iconUrl = "";
-
-  if (tileId === "tile-weather" && !iconUrl) {
-    iconUrl = "http://192.168.10.60/admin-portal/assets/uploads/Menus/Menu_Icons/b36ce629b5d7e15ce7569dbd91be0a26@3x.png";
-  }
-
-  if (iconUrl) setTileIcon(tileId, iconUrl, !!isBigIcon);
-}
-
-
-
-
-
-    mapTile("tile-dining",  ["key_dining_in_room","dining_in_room","in-room dining","room dining","dining"], "In-Room Dining", true);
-
-    mapTile("tile-movies",  ["key_vod","vod","movies","movie"], "Movies", false, null);
+    // ===== MAP ALL TILES =====
+    mapTile("tile-dining", ["key_dining_in_room","dining_in_room","in-room dining","room dining","dining"], "In-Room Dining", true);
+    mapTile("tile-movies", ["key_vod","vod","movies","movie"], "Movies", false, null);
     mapTile("tile-special", ["key_special_offers","special_offers","offers","promotion"], "Special Offers", false, null);
-
-    mapTile("tile-hotelinfo",   ["key_our_services","our_services","hotel info","hotel information","information"], "Hotel Information", false, null);
+    mapTile("tile-hotelinfo", ["key_our_services","our_services","hotel info","hotel information","information"], "Hotel Information", false, null);
     mapTile("tile-roomservice", ["key_hotel_services","hotel_service","roomservice"], "Room Service", false, null);
     mapTile("tile-spa", ["key_facilities","facilities","key_facility"], "Wellness & Spa", false, null);
     mapTile("tile-restaurants", ["key_dining_all_day","dining_all_day","restaurant"], "Restaurants", false, null);
-    mapTile("tile-discover",    ["key_attractions","attractions","discover","city"], "Discover City", false, null);
-    mapTile("tile-prayer",      ["key_prayer_time","prayer_time","shop"], "Prayer", false, null);
-
-    mapTile("tile-music",       ["key_music","music"], "Music", false, null);
-    mapTile("tile-tv",          ["key_tv","tv","tv_channels","television","channels"], "TV", false, null);
-    mapTile("tile-weather",     ["key_weather","weather","temperature"], "Weather", false, null);
-    mapTile("tile-clock",       ["key_world_clock","world_clock","clock"], "Clock", false, null);
+    mapTile("tile-discover", ["key_attractions","attractions","discover","city"], "Discover City", false, null);
+    mapTile("tile-prayer", ["key_prayer_time","prayer_time","shop"], "Prayer", false, null);
+    mapTile("tile-music", ["key_music","music"], "Music", false, null);
+    mapTile("tile-tv", ["key_tv","tv","tv_channels","television","channels"], "TV", false, null);
+    mapTile("tile-weather", ["key_weather","weather","temperature"], "Weather", false, null);
+    mapTile("tile-clock", ["key_world_clock","world_clock","clock"], "Clock", false, null);
     mapTile("tile-roomcontrol", ["key_room_control","room_control","controls","iot"], "Room Control", false, null);
-    mapTile("tile-cart",        ["key_cart","cart","view_cart","basket"], "Cart", false, null);
-    mapTile("tile-messages",    ["key_messages","messages","inbox"], "Messages", false, null);
-    mapTile("tile-viewbill",    ["view bill","bill","folio"], "View Bill", false, null);
+    mapTile("tile-cart", ["key_cart","cart","view_cart","basket"], "Cart", false, null);
+    mapTile("tile-messages", ["key_messages","messages","inbox"], "Messages", false, null);
+    mapTile("tile-viewbill", ["view bill","bill","folio"], "View Bill", false, null);
   }
-
-  // ===================== API LOAD =====================
 
   function loadAppData() {
     if (!window.TenxApi || typeof window.TenxApi.getAppDataNormalized !== "function") {
@@ -1301,11 +1201,10 @@ function mapTile(tileId, tests, fallbackLabel, isBigIcon, preferredAttrUpper) {
       APP_DATA = app;
       log("app_json loaded");
       hydrateFromRoutes(app);
-      // If TV view is already open, push fresh appJson into the module
+      
       if (currentView === "tv" && window.TVChannels && typeof window.TVChannels.updateAppJson === "function") {
-          window.TVChannels.updateAppJson(APP_DATA);
-        }
-
+        window.TVChannels.updateAppJson(APP_DATA);
+      }
     }, function (err) {
       log("app_json error:", err);
     });
@@ -1330,28 +1229,19 @@ function mapTile(tileId, tests, fallbackLabel, isBigIcon, preferredAttrUpper) {
       applyLang();
     });
   }
-// Decide which view to show based on URL hash.
-// This must exist before BOOT uses it.
-function routeFromHash() {
-  var raw = (window.location.hash || "");
-  var h = raw.toLowerCase();
 
-  // Explicit routes always win
-  if (h.indexOf("#/welcome") === 0) { showView("welcome"); return; }
-  if (h.indexOf("#/home") === 0)    { showView("home"); return; }
-  if (h.indexOf("#/weather") === 0) { showView("weather"); return; }
-  if (h.indexOf("#/music") === 0)   { showView("music"); return; }
+  function routeFromHash() {
+    var raw = (window.location.hash || "");
+    var h = raw.toLowerCase();
 
+    if (h.indexOf("#/welcome") === 0) { showView("welcome"); return; }
+    if (h.indexOf("#/home") === 0) { showView("home"); return; }
+    if (h.indexOf("#/weather") === 0) { showView("weather"); return; }
+    if (h.indexOf("#/music") === 0) { showView("music"); return; }
 
-  // No hash or unknown hash:
-  // - First ever load -> welcome
-  // - Later reloads -> home
-  if (hasSeenWelcome()) showView("home");
-  else showView("welcome");
-}
-
-
-  // ===================== BOOT =====================
+    if (hasSeenWelcome()) showView("home");
+    else showView("welcome");
+  }
 
   window.addEventListener("resize", fitStage);
   window.addEventListener("hashchange", routeFromHash);
