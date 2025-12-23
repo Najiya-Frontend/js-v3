@@ -11,6 +11,8 @@
   var prevView = "home";
   var viewTV = document.getElementById("view-tv");
   var viewMusic = document.getElementById("view-music");
+  var viewMessages = document.getElementById("view-messages");
+
   
   var GUEST_FULL = "";
   var ROOM_NO = "";
@@ -325,6 +327,12 @@
         window.MusicPage.close();
       }
     }
+    if (currentView === "messages" && name !== "messages") {
+      if (window.MessagesPage && typeof window.MessagesPage.hide === "function") {
+      window.MessagesPage.hide();
+  }
+}
+
 
     setTopbarTheme(name);
 
@@ -335,6 +343,8 @@
       if (viewWelcome) viewWelcome.className = "tx-view";
       if (viewHome) viewHome.className = "tx-view";
       if (viewWeather) viewWeather.className = "tx-view";
+      if (viewMessages) viewMessages.className = "tx-view";
+      if (viewMusic) viewMusic.className = "tx-view";
       if (viewTV) viewTV.className = "tx-view is-active";
 
       try {
@@ -356,6 +366,8 @@
       if (viewHome) viewHome.className = "tx-view";
       if (viewWeather) viewWeather.className = "tx-view is-active";
       if (viewTV) viewTV.className = "tx-view";
+      if (viewMessages) viewMessages.className = "tx-view";
+      if (viewMusic) viewMusic.className = "tx-view";
       
       var wRt = PAGE_ROUTE_BY_KEY["KEY_WEATHER"];
       if (wRt && wRt.route_bg) setPageBg(viewWeather, resolveRouteBgValue(wRt.route_bg));
@@ -374,6 +386,8 @@
       if (viewHome) viewHome.className = "tx-view";
       if (viewWeather) viewWeather.className = "tx-view";
       if (viewTV) viewTV.className = "tx-view";
+      if (viewMessages) viewMessages.className = "tx-view";
+
       if (viewMusic) viewMusic.className = "tx-view is-active";
 
       try {
@@ -401,6 +415,37 @@
 
       return;
     }
+  if (name === "messages") {
+  prevView = currentView || "home";
+  currentView = "messages";
+
+  if (viewWelcome) viewWelcome.className = "tx-view";
+  if (viewHome) viewHome.className = "tx-view";
+  if (viewWeather) viewWeather.className = "tx-view";
+  if (viewTV) viewTV.className = "tx-view";
+  if (viewMusic) viewMusic.className = "tx-view";
+  if (viewMessages) viewMessages.className = "tx-view is-active";
+
+  try {
+    // page route (parent_id 0) holds layout_data for messages
+    var mRt = PAGE_ROUTE_BY_KEY["KEY_MESSAGES"] || findByKey("KEY_MESSAGES", false);
+
+    // apply page bg if present
+    if (mRt && mRt.route_bg && viewMessages) {
+      setPageBg(viewMessages, resolveRouteBgValue(mRt.route_bg));
+    }
+
+    if (window.MessagesPage) {
+      if (typeof window.MessagesPage.show === "function") window.MessagesPage.show();
+      if (mRt && typeof window.MessagesPage.setData === "function") window.MessagesPage.setData(mRt);
+      else if (APP_DATA && typeof window.MessagesPage.loadFromAppJson === "function") window.MessagesPage.loadFromAppJson(APP_DATA);
+    }
+  } catch (e) {
+    log("Error opening messages: " + (e && e.message ? e.message : e));
+  }
+
+  return;
+}
 
     currentView = name;
 
@@ -501,6 +546,11 @@
       showView("music");
       return;
     }
+    if (tileId === "tile-messages") {
+    showView("messages");
+    return;
+    }
+
 
     if (rt) {
       alert("Open: " + (rt.route_name || tileId) + " (route_id=" + (rt.route_id || "") + ")");
@@ -527,6 +577,11 @@
         showView(prevView || "home");
         return;
       }
+      if (currentView === "messages") {
+        showView(prevView || "home");
+        return;
+        }
+
 
       if (currentView === "tv") {
         if (window.TVChannels && typeof window.TVChannels.handleKeyDown === "function") {
@@ -579,6 +634,25 @@
 
       return;
     }
+    if (currentView === "messages") {
+        // Let Messages page consume arrows/OK/etc.
+        if (window.MessagesPage && typeof window.MessagesPage.handleKeyDown === "function") {
+          if (window.MessagesPage.handleKeyDown(e)) { e.preventDefault(); return; }
+        }
+
+        // Back keys -> previous view
+        if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+          e.preventDefault();
+          showView(prevView || "home");
+          return;
+        }
+
+        // Prevent OK falling through to Home
+        if (k === OK) { e.preventDefault(); return; }
+
+        return;
+      }
+
 
     if (currentView === "music") {
       if (window.MusicPage && typeof window.MusicPage.onKeyDown === "function") {
@@ -1075,12 +1149,15 @@
       }
 
       // Resolve both variants by KEY_*
+
       if (routeKey) {
-        if (needsBg) {
-          tileRt = TILE_ROUTE_BY_KEY[routeKey] || findByKey(routeKey, true);
-        }
-        pageRt = PAGE_ROUTE_BY_KEY[routeKey] || findByKey(routeKey, false);
-      }
+      // ✅ Always fetch tileRt so icons work (parent_id 211)
+      tileRt = TILE_ROUTE_BY_KEY[routeKey] || findByKey(routeKey, true);
+
+      // ✅ Page route still for actions/labels (parent_id 0)
+      pageRt = PAGE_ROUTE_BY_KEY[routeKey] || findByKey(routeKey, false);
+    }
+
 
       // Fallback fuzzy route (legacy support)
       var fuzzy = findRoute(ROUTES_LIST, tests);
@@ -1205,6 +1282,11 @@
       if (currentView === "tv" && window.TVChannels && typeof window.TVChannels.updateAppJson === "function") {
         window.TVChannels.updateAppJson(APP_DATA);
       }
+      if (currentView === "messages" && window.MessagesPage) {
+        var mRt = PAGE_ROUTE_BY_KEY["KEY_MESSAGES"] || findByKey("KEY_MESSAGES", false);
+      if (mRt && typeof window.MessagesPage.setData === "function") window.MessagesPage.setData(mRt);
+      }
+
     }, function (err) {
       log("app_json error:", err);
     });
@@ -1238,6 +1320,8 @@
     if (h.indexOf("#/home") === 0) { showView("home"); return; }
     if (h.indexOf("#/weather") === 0) { showView("weather"); return; }
     if (h.indexOf("#/music") === 0) { showView("music"); return; }
+    if (h.indexOf("#/messages") === 0) { showView("messages"); return; }
+
 
     if (hasSeenWelcome()) showView("home");
     else showView("welcome");

@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/tvchannels.css">
   <link rel="stylesheet" href="css/weather.css">
   <link rel="stylesheet" href="css/music.css">
+  <link rel="stylesheet" href="css/messages.css">
   
 
 
@@ -191,6 +192,61 @@
           </div>
         </main>
       </section>
+<!-- ===================== MESSAGES VIEW ===================== -->
+<section id="view-messages" class="tx-view">
+  <div class="mx-msg" id="mx-msg-root">
+    <div class="mx-msg__bg"></div>
+   
+
+    <div class="mx-msg__titles">
+      <div class="mx-msg__h mx-msg__h--left">Messages</div>
+      <div class="mx-msg__h mx-msg__h--right">Mailbox</div>
+    </div>
+
+    <!-- LEFT list -->
+    <div class="mx-msg__left">
+      <div id="mx-msg-list" class="mx-msg-list">
+        <div id="mx-msg-list-viewport" class="mx-msg-list__viewport">
+          <div id="mx-msg-list-content" class="mx-msg-list__content"></div>
+        </div>
+
+        <div id="mx-msg-scroll-track" class="mx-msg-list__track">
+          <div id="mx-msg-scroll-thumb" class="mx-msg-list__thumb"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT detail box -->
+    <div class="mx-msg__right">
+      <div class="mx-msg-box">
+        <div id="mx-msg-detail-title" class="mx-msg-box__title">—</div>
+        <div id="mx-msg-detail-body" class="mx-msg-box__body"></div>
+      </div>
+    </div>
+
+    <!-- Bottom legend -->
+    <div class="mx-msg__legend">
+      <div class="mx-lg mx-lg--left">
+        <span class="mx-lg__back">↩</span><span class="mx-lg__txt">Back</span>
+        <span class="mx-lg__sep"></span>
+        <span class="mx-lg__nav">↕</span><span class="mx-lg__txt">Navigation</span>
+      </div>
+
+      <div class="mx-lg mx-lg--center">
+        <span class="mx-lg__ok">OK</span><span class="mx-lg__txt">Read Message</span>
+        <span class="mx-lg__sep"></span>
+        <span class="mx-lg__lbl">Filter by:</span>
+        <span class="mx-lg__chip mx-lg__chip--y"></span>
+        <span id="mx-msg-filter-value" class="mx-lg__txt mx-lg__txt--strong">Message</span>
+      </div>
+
+      <div class="mx-lg mx-lg--right">
+        <span class="mx-lg__chip mx-lg__chip--b"></span>
+        <span class="mx-lg__txt">Language</span>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ===================== WEATHER VIEW (NEW) ===================== -->
 <section id="view-weather" class="tx-view">
@@ -391,6 +447,7 @@
   <script src="js/app/tvchannels.js"></script>
   <script src="js/app/weather.js"></script>
   <script src="js/app/music.js"></script>
+  <script src="js/app/messages.js"></script>
 
   <script src="js/app/home.js"></script>
   
