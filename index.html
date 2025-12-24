@@ -454,3 +454,549 @@
   
 </body>
 </html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TenX IPTV HZ UI </title>
+  <meta name="color-scheme" content="dark">
+  <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
+  <link rel="stylesheet" href="css/home.css">
+  <link rel="stylesheet" href="css/tvchannels.css">
+  <link rel="stylesheet" href="css/weather.css">
+  <link rel="stylesheet" href="css/music.css">
+  <link rel="stylesheet" href="css/messages.css">
+  <link rel="stylesheet" href="css/vod.css">
+  
+
+
+</head>
+
+<body>
+  <!-- Fixed 1920×1080 stage (scaled to screen) -->
+  <div id="tx-stage" class="tx-stage">
+    <div class="tx-app">
+      <!-- GLOBAL TOPBAR (shared by all views) -->
+        <header id="tx-topbar" class="tx-topbar tx-topbar--global">
+          <div class="tx-brand">
+            <img id="brand-logo" class="tx-brand__logo" alt="TenX" style="display:none" />
+            <div id="brand-text" class="tx-brand__tenx">TenX</div>
+            <div class="tx-brand__sub">hospitality IPTV</div>
+          </div>
+
+          <div class="tx-topmeta">
+            <div class="tx-meta" id="meta-welcome">Welcome, Mr.Ahmed</div>
+            <div class="tx-meta" id="meta-room">Room 101</div>
+            <div class="tx-meta" id="meta-temp">☁ 23°C</div>
+            <div class="tx-meta" id="meta-time">⏱️ --:--</div>
+            <div class="tx-meta" id="meta-date">-- --- ----</div>
+          </div>
+        </header>
+
+
+      <!-- ===================== WELCOME VIEW ===================== -->
+      <section id="view-welcome" class="tx-view is-active">
+        <div class="tx-bg tx-bg--welcome"></div>
+        <div class="tx-vignette"></div>
+
+      
+
+        <main class="tx-welcome">
+          <div class="tx-welcome__title" id="welcome-title">WELCOME</div>
+          <div class="tx-welcome__name" id="welcome-name">MR AHMED ABDELWAHAB</div>
+
+          <button id="btn-continue" class="tx-btn tx-focusable" data-focus="welcome" data-focus-index="0">
+            <span id="txt-continue">Continue</span>
+          </button>
+
+          <div class="tx-welcome__toggles">
+            <div id="toggle-tv" class="tx-toggle tx-focusable" data-focus="welcome" data-focus-index="1">
+              <span id="txt-tv">Television</span>
+            </div>
+
+            <div id="toggle-lang" class="tx-toggle tx-focusable" data-focus="welcome" data-focus-index="2">
+              <span class="tx-dot" aria-hidden="true"></span>
+              <span id="txt-lang">Language</span>
+            </div>
+          </div>
+        </main>
+      </section>
+
+      <!-- ===================== HOME VIEW ===================== -->
+      <section id="view-home" class="tx-view">
+        <!-- background layer so setPageBg() works -->
+        <div class="tx-bg tx-bg--home"></div>
+        <div class="tx-vignette"></div>
+
+       
+
+        <main class="tx-grid">
+          <!-- Row 1 -->
+          <div id="tile-hotelinfo" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="hotelinfo">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Hotel Information</div>
+          </div>
+
+          <div id="tile-roomservice" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="roomservice">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Room Service</div>
+          </div>
+
+          <!-- Movies: needs BOTH photo bg + center play/icon wrapper -->
+          <div id="tile-movies" class="tx-tile is-photo is-icon tx-focusable" data-focus="home" data-tile="movies">
+            <div class="tx-tile__shade"></div>
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-tile__centerIcon">▶</div>
+            </div>
+            <div class="tx-tile__label">Movies</div>
+          </div>
+
+          <!-- Icon tiles -->
+          <div id="tile-music" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="music">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">🎧</div>
+            </div>
+            <div class="tx-tile__label">Music</div>
+          </div>
+
+          <div id="tile-tv" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="tv">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">▭</div>
+            </div>
+            <div class="tx-tile__label">TV</div>
+          </div>
+
+          <!-- Row 2 -->
+          <div id="tile-spa" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="spa">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Wellness &amp; Spa</div>
+          </div>
+
+          <div id="tile-restaurants" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="restaurants">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Restaurants</div>
+          </div>
+
+          <div id="tile-weather" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="weather">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">☁</div>
+            </div>
+            <div class="tx-tile__label"><span id="tile-weather-text">+23 C</span></div>
+          </div>
+
+          <div id="tile-clock" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="clock">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">⏰</div>
+            </div>
+            <div class="tx-tile__label">World Clock</div>
+          </div>
+
+          <!-- Row 3 -->
+          <div id="tile-dining" class="tx-tile is-iconBig tx-focusable" data-focus="home" data-tile="dining">
+            <div class="tx-tile__iconWrap tx-tile__iconWrap--big">
+              <img class="tx-route-icon tx-route-icon--big" alt="" />
+              <div class="tx-iconBig" aria-hidden="true">🍽</div>
+            </div>
+            <div class="tx-tile__label">In-Room Dining</div>
+            <div class="tx-tile__sub">24 hours</div>
+          </div>
+
+          <div id="tile-discover" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="discover">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Discover City</div>
+          </div>
+
+          <div id="tile-roomcontrol" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="roomcontrol">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">🎛</div>
+            </div>
+            <div class="tx-tile__label">Room Control</div>
+          </div>
+
+          <div id="tile-cart" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="cart">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">👜</div>
+            </div>
+            <div class="tx-tile__label">Cart</div>
+          </div>
+
+          <div id="tile-special" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="special">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Special Offers</div>
+          </div>
+
+          <!-- Row 4 -->
+          <div id="tile-prayer" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="prayer">
+            <div class="tx-tile__shade"></div><div class="tx-tile__label">Prayer</div>
+          </div>
+
+          <div id="tile-messages" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="messages">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">✉</div>
+            </div>
+            <div class="tx-tile__label">Messages</div>
+          </div>
+
+          <div id="tile-viewbill" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="viewbill">
+            <div class="tx-tile__iconWrap">
+              <img class="tx-route-icon" alt="" />
+              <div class="tx-icon" aria-hidden="true">🧾</div>
+            </div>
+            <div class="tx-tile__label">View Bill</div>
+          </div>
+        </main>
+      </section>
+<!-- ===================== MESSAGES VIEW ===================== -->
+<section id="view-messages" class="tx-view">
+  <div class="mx-msg" id="mx-msg-root">
+    <div class="mx-msg__bg"></div>
+   
+
+    <div class="mx-msg__titles">
+      <div class="mx-msg__h mx-msg__h--left">Messages</div>
+      <div class="mx-msg__h mx-msg__h--right">Mailbox</div>
+    </div>
+
+    <!-- LEFT list -->
+    <div class="mx-msg__left">
+      <div id="mx-msg-list" class="mx-msg-list">
+        <div id="mx-msg-list-viewport" class="mx-msg-list__viewport">
+          <div id="mx-msg-list-content" class="mx-msg-list__content"></div>
+        </div>
+
+        <div id="mx-msg-scroll-track" class="mx-msg-list__track">
+          <div id="mx-msg-scroll-thumb" class="mx-msg-list__thumb"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT detail box -->
+    <div class="mx-msg__right">
+      <div class="mx-msg-box">
+        <div id="mx-msg-detail-title" class="mx-msg-box__title">—</div>
+        <div id="mx-msg-detail-body" class="mx-msg-box__body"></div>
+      </div>
+    </div>
+
+    <!-- Bottom legend -->
+    <div class="mx-msg__legend">
+      <div class="mx-lg mx-lg--left">
+        <span class="mx-lg__back">↩</span><span class="mx-lg__txt">Back</span>
+        <span class="mx-lg__sep"></span>
+        <span class="mx-lg__nav">↕</span><span class="mx-lg__txt">Navigation</span>
+      </div>
+
+      <div class="mx-lg mx-lg--center">
+        <span class="mx-lg__ok">OK</span><span class="mx-lg__txt">Read Message</span>
+        <span class="mx-lg__sep"></span>
+        <span class="mx-lg__lbl">Filter by:</span>
+        <span class="mx-lg__chip mx-lg__chip--y"></span>
+        <span id="mx-msg-filter-value" class="mx-lg__txt mx-lg__txt--strong">Message</span>
+      </div>
+
+      <div class="mx-lg mx-lg--right">
+        <span class="mx-lg__chip mx-lg__chip--b"></span>
+        <span class="mx-lg__txt">Language</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Add this section to index.html after the messages view -->
+
+<!-- ===================== VOD VIEW ===================== -->
+<section id="view-vod" class="tx-view">
+  <!-- Background video (trailer) -->
+  <div class="vod-bg-video">
+    <video id="vod-bg-video" autoplay muted loop></video>
+  </div>
+  <div class="vod-overlay"></div>
+
+  <!-- Grid View -->
+  <div class="vod-main">
+    <div class="vod-title-row">
+      <div id="vod-title" class="vod-title">Movies</div>
+      <div id="vod-count" class="vod-count">0 of 0</div>
+    </div>
+
+    <div id="vod-grid-viewport" class="vod-grid-viewport">
+      <div id="vod-grid" class="vod-grid"></div>
+    </div>
+  </div>
+
+  <!-- Detail View -->
+  <div id="vod-detail" class="vod-detail">
+    <div class="vod-detail__content">
+      <div id="vod-detail-poster" class="vod-detail__poster"></div>
+
+      <div class="vod-detail__info">
+        <div id="vod-detail-category" class="vod-detail__category">Drama</div>
+        <div id="vod-detail-title" class="vod-detail__title">Movie Title</div>
+
+        <div id="vod-detail-meta" class="vod-detail__meta-row"></div>
+
+        <div class="vod-detail__section">
+          <div class="vod-detail__label">Cast</div>
+          <div id="vod-detail-cast" class="vod-detail__text">—</div>
+        </div>
+
+        <div class="vod-detail__section">
+          <div class="vod-detail__label">Director</div>
+          <div id="vod-detail-director" class="vod-detail__text">—</div>
+        </div>
+
+        <div class="vod-detail__section">
+          <div class="vod-detail__label">Description</div>
+          <div id="vod-detail-desc" class="vod-detail__text">—</div>
+        </div>
+
+        <button id="vod-detail-btn" class="vod-detail__btn">
+          <span>▶</span>
+          <span>Watch Now</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Player -->
+  <div id="vod-player" class="vod-player">
+    <video id="vod-player-video" controls></video>
+  </div>
+
+  <!-- Legend -->
+  <footer class="vod-legend">
+    <div class="vod-legend__group">
+      <div class="vod-legend__item">
+        <span class="vod-legend__icon">↩</span>
+        <span>Back</span>
+      </div>
+      <div class="vod-legend__item">
+        <span class="vod-legend__icon">↕↔</span>
+        <span>Navigate</span>
+      </div>
+    </div>
+
+    <div class="vod-legend__group">
+      <div class="vod-legend__item">
+        <span>OK: Select Movie</span>
+      </div>
+    </div>
+
+    <div class="vod-legend__group">
+      <div class="vod-legend__item">
+        <span>🎬 Movies</span>
+      </div>
+    </div>
+  </footer>
+</section>
+
+<!-- ===================== WEATHER VIEW (NEW) ===================== -->
+<section id="view-weather" class="tx-view">
+  <div class="tx-bg tx-bg--weather"></div>
+  <div class="tx-vignette"></div>
+
+
+  <main class="wx">
+    <div class="wx-left">
+      <div class="wx-kv" id="wx-wind">Wind: —</div>
+      <div class="wx-kv" id="wx-humidity">Humidity: —</div>
+    </div>
+
+    <div class="wx-center">
+      <div class="wx-city" id="wx-city">Weather</div>
+      <div class="wx-now">
+        <span class="wx-temp" id="wx-temp">+0°C</span>
+        <span class="wx-cond" id="wx-cond">now<br>—</span>
+      </div>
+    </div>
+
+    <div class="wx-right">
+      <div class="wx-kv" id="wx-pressure">Pressure: —</div>
+      <div class="wx-kv" id="wx-cloud">Cloudiness: —</div>
+    </div>
+
+    <div class="wx-cards" id="wx-cards"></div>
+  </main>
+
+
+
+  
+  <div class="wx-bottom">
+  <!-- LEFT: Back + C/F -->
+  <div class="wx-legend wx-legend--left">
+    <span class="wx-item"><span class="wx-ico">↩</span> Back</span>
+    <span class="wx-sep"></span>
+    <span class="wx-item"><span class="wx-key wx-key--red"></span> C°/F°</span>
+  </div>
+
+  <!-- CENTER: Change Location -->
+  <div class="wx-legend wx-legend--center">
+    <span class="wx-item"><span class="wx-key wx-key--blue"></span> Change Location</span>
+  </div>
+
+  <!-- RIGHT: Television + Language -->
+  <div class="wx-legend wx-legend--right">
+    <span class="wx-item"><span class="wx-key wx-key--red"></span> Television</span>
+    <span class="wx-sep"></span>
+    <span class="wx-item"><span class="wx-key wx-key--blue"></span> Language</span>
+  </div>
+</div>
+
+
+   
+</section>
+
+      <!-- ===================== TV VIEW ===================== -->
+  <section id="view-tv" class="tx-view">
+  <div class="tv-bg"></div>
+  <div class="tv-scrim"></div>
+
+ 
+ 
+
+  <!-- Main TV Channels Grid + Player -->
+  <div class="tv-main">
+    <div class="tv-left">
+      <div class="tv-left__titleRow">
+        <div class="tv-left__title" id="tv-title">TV Channels</div>
+        <div class="tv-left__count" id="tv-count">1 of 1</div>
+      </div>
+      <div class="tv-grid-viewport" id="tv-grid-viewport">
+        <div id="tv-grid" class="tv-grid"></div>
+      </div>
+    </div>
+
+    <div class="tv-right">
+      <div class="tv-playerBox">
+        <video id="tv-preview" autoplay muted></video>
+        <div id="tv-osd" class="tv-osd"></div>
+      </div>
+      <div id="tv-now-name" class="tv-right__name"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Legend -->
+  <footer class="tv-legend">
+    <div class="tv-legend__left">
+      <div class="tv-keypill">↩ Back</div>
+      <div class="tv-keypill">⟷ Navigation</div>
+    </div>
+
+    <div class="tv-legend__center">
+      <div class="tv-keypill">OK: Watch Channel</div>
+      <div class="tv-keypill">Filter by:</div>
+      <div class="tv-keypill"><span class="tv-dot tv-dot--yellow"></span> Television</div>
+    </div>
+
+    <div class="tv-legend__right">
+      <div class="tv-keypill"><span class="tv-dot tv-dot--blue"></span> Language</div>
+    </div>
+  </footer>
+</section>
+<!-- ===================== MUSIC VIEW ===================== -->
+<section id="view-music" class="tx-view">
+  <div class="mx-bg"></div>
+  <div class="mx-vignette"></div>
+
+  <!-- Title row -->
+  <div class="mx-titleRow">
+    <div class="mx-title">Music</div>
+    <div id="mx-count" class="mx-count">0 of 0</div>
+  </div>
+
+  <!-- Main layout -->
+  <div class="mx-main">
+
+    <!-- LEFT: sidebar + grid -->
+    <div class="mx-left">
+
+      <!-- Sidebar (Figma) -->
+      <div class="mx-side">
+        <div class="mx-nav" id="mx-nav">
+          <div class="mx-navItem is-focus" data-tab="songs">All Songs</div>
+          <div class="mx-navItem" data-tab="albums">Albums</div>
+          <div class="mx-navItem" data-tab="genres">Genres</div>
+          <div class="mx-navItem" data-tab="playlists">Playlists</div>
+        </div>
+      </div>
+
+      <!-- Scrollbar (optional visual only) -->
+      <div class="mx-scrollbar" id="mx-scrollbar">
+        <div class="mx-scrollbar-thumb" id="mx-scrollbar-thumb"></div>
+      </div>
+
+      <!-- Grid -->
+      <div id="mx-grid-viewport" class="mx-grid-viewport">
+        <div id="mx-grid" class="mx-grid"></div>
+      </div>
+
+    </div>
+
+    <!-- Divider -->
+    <div class="mx-divider"></div>
+
+    <!-- RIGHT: player panel -->
+    <div class="mx-rightPanel">
+      <div class="mx-playerCard">
+
+        <div id="mx-player-visual" class="mx-player-visual"></div>
+
+        <!-- ✅ Put title/artist inside card (Figma) -->
+        <div id="mx-nowtitle" class="mx-nowtitle">—</div>
+        <div id="mx-nowartist" class="mx-nowartist"></div>
+
+        <div class="mx-player-progress">
+          <span id="mx-cur" class="mx-player-time">00:00</span>
+          <div class="mx-player-bar">
+            <div id="mx-player-fill" class="mx-player-fill"></div>
+            <div id="mx-player-knob" class="mx-player-knob"></div>
+          </div>
+          <span id="mx-dur" class="mx-player-time">00:00</span>
+        </div>
+
+        <div class="mx-player-controls">
+          <button id="mx-prev" class="mx-btn" type="button">⏮</button>
+          <button id="mx-play" class="mx-btn mx-btn--play" type="button">▶</button>
+          <button id="mx-next" class="mx-btn" type="button">⏭</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer legend -->
+  <footer class="mx-legend">
+    <div class="mx-legend__left"><span class="mx-ico">↩</span> Back</div>
+    <div class="mx-legend__center"><span class="mx-ico">OK</span> Listen Music</div>
+    <div class="mx-legend__right">
+      <span class="mx-ico mx-dot mx-dot--y"></span> Music
+      <span class="mx-sp"></span>
+      <span class="mx-ico mx-dot mx-dot--b"></span> Language
+    </div>
+  </footer>
+
+  <audio id="mx-audio" preload="metadata"></audio>
+</section>
+<!-- ===================== END MUSIC VIEW ===================== -->
+
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/utils/mac.util.js"></script>
+  <script src="js/services/api.js"></script>
+  <script src="js/app/tvchannels.js"></script>
+  <script src="js/app/weather.js"></script>
+  <script src="js/app/music.js"></script>
+  <script src="js/app/messages.js"></script>
+  <script src="js/app/vod.js"></script>
+
+  <script src="js/app/home.js"></script>
+  
+  
+</body>
+</html>

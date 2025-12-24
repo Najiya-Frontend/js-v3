@@ -12,6 +12,7 @@
   var viewTV = document.getElementById("view-tv");
   var viewMusic = document.getElementById("view-music");
   var viewMessages = document.getElementById("view-messages");
+  var viewVOD = document.getElementById("view-vod");
 
   
   var GUEST_FULL = "";
@@ -330,8 +331,13 @@
     if (currentView === "messages" && name !== "messages") {
       if (window.MessagesPage && typeof window.MessagesPage.hide === "function") {
       window.MessagesPage.hide();
-  }
-}
+      }
+    }
+    if (currentView === "vod" && name !== "vod") {
+      if (window.VODPage && typeof window.VODPage.close === "function") {
+      window.VODPage.close();
+      }
+    }
 
 
     setTopbarTheme(name);
@@ -377,6 +383,36 @@
       }
       return;
     }
+    if (name === "vod") {
+      prevView = currentView || "home";
+      currentView = "vod";
+
+      if (viewWelcome) viewWelcome.className = "tx-view";
+      if (viewHome) viewHome.className = "tx-view";
+      if (viewWeather) viewWeather.className = "tx-view";
+      if (viewTV) viewTV.className = "tx-view";
+      if (viewMusic) viewMusic.className = "tx-view";
+      if (viewMessages) viewMessages.className = "tx-view";
+      if (viewVOD) viewVOD.className = "tx-view is-active";
+
+      try {
+        // Find VOD route (parent_id 0 for page data)
+        var vodRoute = PAGE_ROUTE_BY_KEY["KEY_VOD"] || findByKey("KEY_VOD", false);
+
+        // Apply page background if present
+        if (vodRoute && vodRoute.route_bg && viewVOD) {
+          setPageBg(viewVOD, resolveRouteBgValue(vodRoute.route_bg));
+        }
+
+        if (window.VODPage && typeof window.VODPage.open === "function") {
+          window.VODPage.open(vodRoute);
+        }
+      } catch (e) {
+        log("Error opening VOD: " + (e && e.message ? e.message : e));
+      }
+
+      return;
+}
 
     if (name === "music") {
       prevView = currentView || "home";
@@ -424,6 +460,7 @@
   if (viewWeather) viewWeather.className = "tx-view";
   if (viewTV) viewTV.className = "tx-view";
   if (viewMusic) viewMusic.className = "tx-view";
+  if (viewVOD) viewVOD.className = "tx-view";
   if (viewMessages) viewMessages.className = "tx-view is-active";
 
   try {
@@ -550,6 +587,10 @@
     showView("messages");
     return;
     }
+    if (tileId === "tile-movies") {
+    showView("vod");
+    return;
+    }
 
 
     if (rt) {
@@ -592,6 +633,17 @@
         showView(prevView || "home");
         return;
       }
+          // inside if (k === 85) { ... } block in home.js
+          if (currentView === "vod") {
+            // First: let VODPage exit fullscreen/detail if needed
+            if (window.VODPage && typeof window.VODPage.handleKeyDown === "function") {
+              if (window.VODPage.handleKeyDown({ keyCode: 85, which: 85 })) return;
+            }
+            // Otherwise go back to previous view
+            showView(prevView || "home");
+            return;
+          }
+
 
       onBack();
       return;
@@ -652,7 +704,23 @@
 
         return;
       }
+    if (currentView === "vod") {
+      if (window.VODPage && typeof window.VODPage.handleKeyDown === "function") {
+        if (window.VODPage.handleKeyDown(e)) { e.preventDefault(); return; }
+      }
 
+      // Back keys -> previous view
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+
+      // Prevent OK falling through to Home
+      if (k === OK) { e.preventDefault(); return; }
+
+      return;
+    }
 
     if (currentView === "music") {
       if (window.MusicPage && typeof window.MusicPage.onKeyDown === "function") {
@@ -1320,6 +1388,7 @@
     if (h.indexOf("#/home") === 0) { showView("home"); return; }
     if (h.indexOf("#/weather") === 0) { showView("weather"); return; }
     if (h.indexOf("#/music") === 0) { showView("music"); return; }
+    if (h.indexOf("#/vod") === 0) { showView("vod"); return; }
     if (h.indexOf("#/messages") === 0) { showView("messages"); return; }
 
 

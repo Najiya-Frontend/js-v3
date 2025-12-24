@@ -1,0 +1,360 @@
+/* css/vod.css — VOD page (1920x1080, Tizen 4 safe) */
+
+#view-vod {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  display: none;
+}
+#view-vod.is-active {
+  display: block;
+}
+
+/* Background video layer */
+.vod-bg-video {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+.vod-bg-video video {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+}
+
+
+
+/* Main container */
+.vod-main {
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  top: 180px;
+  bottom: 100px;
+}
+
+/* Title row */
+.vod-title-row {
+  /* display: flex;
+  align-items: baseline;
+  gap: 24px;
+  margin-bottom: 24px; */
+  display:none;
+}
+.vod-title {
+  font-size: 48px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.95);
+}
+.vod-count {
+  font-size: 28px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Grid viewport with vertical scrolling (category rows) */
+.vod-grid-viewport {
+  position: relative;
+  height: 760px;
+  overflow: hidden;
+}
+
+.vod-grid {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  display:block;
+  transform: translateY(0px);
+  transition: transform 0.28s ease;
+}
+
+
+/* Movie card */
+.vod-card {
+  width: 270px;
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.4);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.vod-card__poster {
+  width: 100%;
+  height: 300px;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+
+.vod-card__info {
+  padding: 14px;
+}
+
+.vod-card__title {
+  font-size: 20px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 8px;
+}
+
+.vod-card__meta {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vod-card__rating {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.vod-card__price {
+  color: rgba(255, 214, 0, 0.95);
+  font-weight: 800;
+}
+
+/* Focus state */
+.vod-card.is-focused {
+  border-color: rgba(37, 99, 235, 1);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4), 0 12px 32px rgba(0, 0, 0, 0.5);
+  transform: scale(1.04);
+}
+
+/* Detail view */
+.vod-detail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  flex-direction: column;
+}
+.vod-detail.is-active {
+  display: flex;
+  background:none !important;
+}
+
+.vod-detail__content {
+  flex: 1;
+  display: flex;
+  gap: 48px;
+  padding-top: 120px;
+  background: rgba(0,0,0,.48);
+  /* border:2px solid rgba(245, 241, 241, 0.712); */
+  border-radius: 10px;
+  box-sizing: border-box;
+  padding:35px;
+}
+
+.vod-detail__poster {
+  width: 400px;
+  height: 600px;
+  border-radius: 16px;
+  margin-top:230px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.vod-detail__info {
+  margin-top:230px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.vod-detail__category {
+  font-size: 32px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.vod-detail__title {
+  font-size: 64px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.98);
+  line-height: 1.1;
+}
+
+.vod-detail__meta-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 24px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.vod-detail__rating {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 22px;
+}
+
+.vod-detail__price {
+  color: rgba(255, 214, 0, 0.95);
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.vod-detail__section {
+  margin-top: 16px;
+}
+
+.vod-detail__label {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.vod-detail__text {
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+}
+
+.vod-detail__btn {
+  margin-top: 32px;
+  width: 320px;
+  height: 80px;
+  border-radius: 12px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 32px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.vod-detail__btn.is-focused {
+  border-color: rgba(37, 99, 235, 1);
+  background: rgba(37, 99, 235, 0.3);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4);
+}
+
+/* Fullscreen player */
+.vod-player {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: #000;
+  display: none;
+}
+.vod-player.is-active {
+  display: block;
+}
+
+.vod-player video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Legend */
+.vod-legend {
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  bottom: 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 28px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.vod-legend__group {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.vod-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vod-legend__icon {
+  font-size: 32px;
+}
+
+/* Hide legend in fullscreen */
+.vod-player.is-active ~ .vod-legend {
+  display: none;
+}
+
+/* ===== Category row ===== */
+.vod-cat-row{
+  margin-bottom: 34px;
+  
+}
+
+.vod-cat-title{
+  font-size: 34px;
+  font-weight: 900;
+  color: rgba(255,255,255,.92);
+  margin: 0 0 0 0;
+  text-shadow: 0 8px 22px rgba(0,0,0,.55);
+}
+
+.vod-cat-viewport{
+  position: relative;
+  height: 400px; /* matches card height */
+  
+  margin:20px;
+  padding:20px;
+
+}
+
+.vod-cat-track{
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  gap: 24px;
+  transform: translateX(0px);
+  transition: transform 0.25s ease;
+}
