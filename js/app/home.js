@@ -13,6 +13,7 @@
   var viewMusic = document.getElementById("view-music");
   var viewMessages = document.getElementById("view-messages");
   var viewVOD = document.getElementById("view-vod");
+  var viewFacilities = document.getElementById("view-facilities");
 
   
   var GUEST_FULL = "";
@@ -338,21 +339,29 @@
       window.VODPage.close();
       }
     }
-
+    if (currentView === "facilities" && name !== "facilities") {
+      if (window.FacilitiesPage && typeof window.FacilitiesPage.close === "function") {
+      window.FacilitiesPage.close();
+  }
+}
+    // ===== ALWAYS reset all view classes first (THIS fixes your overlay bug) =====
+  if (viewWelcome) viewWelcome.className = "tx-view";
+  if (viewHome) viewHome.className = "tx-view";
+  if (viewWeather) viewWeather.className = "tx-view";
+  if (viewTV) viewTV.className = "tx-view";
+  if (viewMusic) viewMusic.className = "tx-view";
+  if (viewMessages) viewMessages.className = "tx-view";
+  if (viewVOD) viewVOD.className = "tx-view";
+  if (viewFacilities) viewFacilities.className = "tx-view"
 
     setTopbarTheme(name);
 
     if (name === "tv") {
       prevView = currentView || "home";
       currentView = "tv";
-
-      if (viewWelcome) viewWelcome.className = "tx-view";
-      if (viewHome) viewHome.className = "tx-view";
-      if (viewWeather) viewWeather.className = "tx-view";
-      if (viewMessages) viewMessages.className = "tx-view";
-      if (viewMusic) viewMusic.className = "tx-view";
       if (viewTV) viewTV.className = "tx-view is-active";
 
+      
       try {
         if (window.TVChannels && typeof window.TVChannels.mount === "function") {
           window.TVChannels.mount({ appJson: APP_DATA });
@@ -365,141 +374,119 @@
     }
 
     if (name === "weather") {
-      prevView = currentView || "home";
-      currentView = "weather";
+    prevView = currentView || "home";
+    currentView = "weather";
+    if (viewWeather) viewWeather.className = "tx-view is-active";
 
-      if (viewWelcome) viewWelcome.className = "tx-view";
-      if (viewHome) viewHome.className = "tx-view";
-      if (viewWeather) viewWeather.className = "tx-view is-active";
-      if (viewTV) viewTV.className = "tx-view";
-      if (viewMessages) viewMessages.className = "tx-view";
-      if (viewMusic) viewMusic.className = "tx-view";
-      
-      var wRt = PAGE_ROUTE_BY_KEY["KEY_WEATHER"];
-      if (wRt && wRt.route_bg) setPageBg(viewWeather, resolveRouteBgValue(wRt.route_bg));
+    var wRt = PAGE_ROUTE_BY_KEY["KEY_WEATHER"];
+    if (wRt && wRt.route_bg) setPageBg(viewWeather, resolveRouteBgValue(wRt.route_bg));
 
-      if (window.WeatherPage && typeof window.WeatherPage.onShow === "function") {
-        window.WeatherPage.onShow(APP_DATA);
-      }
-      return;
+    if (window.WeatherPage && typeof window.WeatherPage.onShow === "function") {
+      window.WeatherPage.onShow(APP_DATA);
     }
-    if (name === "vod") {
-      prevView = currentView || "home";
-      currentView = "vod";
+    return;
+  }
 
-      if (viewWelcome) viewWelcome.className = "tx-view";
-      if (viewHome) viewHome.className = "tx-view";
-      if (viewWeather) viewWeather.className = "tx-view";
-      if (viewTV) viewTV.className = "tx-view";
-      if (viewMusic) viewMusic.className = "tx-view";
-      if (viewMessages) viewMessages.className = "tx-view";
-      if (viewVOD) viewVOD.className = "tx-view is-active";
+  if (name === "vod") {
+    prevView = currentView || "home";
+    currentView = "vod";
+    if (viewVOD) viewVOD.className = "tx-view is-active";
 
-      try {
-        // Find VOD route (parent_id 0 for page data)
-        var vodRoute = PAGE_ROUTE_BY_KEY["KEY_VOD"] || findByKey("KEY_VOD", false);
+    try {
+      var vodRoute = PAGE_ROUTE_BY_KEY["KEY_VOD"] || findByKey("KEY_VOD", false);
 
-        // Apply page background if present
-        if (vodRoute && vodRoute.route_bg && viewVOD) {
-          setPageBg(viewVOD, resolveRouteBgValue(vodRoute.route_bg));
-        }
-
-        if (window.VODPage && typeof window.VODPage.open === "function") {
-          window.VODPage.open(vodRoute);
-        }
-      } catch (e) {
-        log("Error opening VOD: " + (e && e.message ? e.message : e));
+      if (vodRoute && vodRoute.route_bg && viewVOD) {
+        setPageBg(viewVOD, resolveRouteBgValue(vodRoute.route_bg));
       }
 
-      return;
-}
-
-    if (name === "music") {
-      prevView = currentView || "home";
-      currentView = "music";
-
-      if (viewWelcome) viewWelcome.className = "tx-view";
-      if (viewHome) viewHome.className = "tx-view";
-      if (viewWeather) viewWeather.className = "tx-view";
-      if (viewTV) viewTV.className = "tx-view";
-      if (viewMessages) viewMessages.className = "tx-view";
-
-      if (viewMusic) viewMusic.className = "tx-view is-active";
-
-      try {
-        var rt = PAGE_ROUTE_BY_KEY["KEY_MUSIC"];
-
-        if (!rt) {
-          var i;
-          for (i = 0; i < ROUTES_LIST.length; i++) {
-            if (ROUTES_LIST[i] &&
-                String(ROUTES_LIST[i].route_key || "").toUpperCase() === "KEY_MUSIC" &&
-                String(ROUTES_LIST[i].route_parent_id || "") === "0") {
-              rt = ROUTES_LIST[i];
-              break;
-            }
-          }
-        }
-        if (rt && rt.route_bg) setPageBg(viewMusic, resolveRouteBgValue(rt.route_bg));
-
-        if (window.MusicPage && typeof window.MusicPage.open === "function") {
-          window.MusicPage.open(rt);
-        }
-      } catch (e) {
-        log("Error opening music: " + (e && e.message ? e.message : e));
+      if (window.VODPage && typeof window.VODPage.open === "function") {
+        window.VODPage.open(vodRoute);
       }
-
-      return;
+    } catch (e2) {
+      log("Error opening VOD: " + (e2 && e2.message ? e2.message : e2));
     }
+    return;
+  }
+
+  if (name === "music") {
+    prevView = currentView || "home";
+    currentView = "music";
+    if (viewMusic) viewMusic.className = "tx-view is-active";
+
+    try {
+      var rt = PAGE_ROUTE_BY_KEY["KEY_MUSIC"];
+      if (rt && rt.route_bg) setPageBg(viewMusic, resolveRouteBgValue(rt.route_bg));
+
+      if (window.MusicPage && typeof window.MusicPage.open === "function") {
+        window.MusicPage.open(rt);
+      }
+    } catch (e3) {
+      log("Error opening music: " + (e3 && e3.message ? e3.message : e3));
+    }
+    return;
+  }
+
   if (name === "messages") {
-  prevView = currentView || "home";
-  currentView = "messages";
+    prevView = currentView || "home";
+    currentView = "messages";
+    if (viewMessages) viewMessages.className = "tx-view is-active";
 
-  if (viewWelcome) viewWelcome.className = "tx-view";
-  if (viewHome) viewHome.className = "tx-view";
-  if (viewWeather) viewWeather.className = "tx-view";
-  if (viewTV) viewTV.className = "tx-view";
-  if (viewMusic) viewMusic.className = "tx-view";
-  if (viewVOD) viewVOD.className = "tx-view";
-  if (viewMessages) viewMessages.className = "tx-view is-active";
+    try {
+      var mRt = PAGE_ROUTE_BY_KEY["KEY_MESSAGES"] || findByKey("KEY_MESSAGES", false);
+
+      if (mRt && mRt.route_bg && viewMessages) {
+        setPageBg(viewMessages, resolveRouteBgValue(mRt.route_bg));
+      }
+
+      if (window.MessagesPage) {
+        if (typeof window.MessagesPage.show === "function") window.MessagesPage.show();
+        if (mRt && typeof window.MessagesPage.setData === "function") window.MessagesPage.setData(mRt);
+        else if (APP_DATA && typeof window.MessagesPage.loadFromAppJson === "function") window.MessagesPage.loadFromAppJson(APP_DATA);
+      }
+    } catch (e4) {
+      log("Error opening messages: " + (e4 && e4.message ? e4.message : e4));
+    }
+    return;
+  }
+  // ✅ NEW: Facilities view handler
+    if (name === "facilities") {
+  prevView = currentView || "home";
+  currentView = "facilities";
+
+  if (viewFacilities) viewFacilities.className = "tx-view is-active";
 
   try {
-    // page route (parent_id 0) holds layout_data for messages
-    var mRt = PAGE_ROUTE_BY_KEY["KEY_MESSAGES"] || findByKey("KEY_MESSAGES", false);
+    var fcRoute = PAGE_ROUTE_BY_KEY["KEY_FACILITIES"] || findByKey("KEY_FACILITIES", false);
 
-    // apply page bg if present
-    if (mRt && mRt.route_bg && viewMessages) {
-      setPageBg(viewMessages, resolveRouteBgValue(mRt.route_bg));
+    // optional: page bg if backend has it
+    if (fcRoute && fcRoute.route_bg && viewFacilities) {
+      setPageBg(viewFacilities, resolveRouteBgValue(fcRoute.route_bg));
     }
 
-    if (window.MessagesPage) {
-      if (typeof window.MessagesPage.show === "function") window.MessagesPage.show();
-      if (mRt && typeof window.MessagesPage.setData === "function") window.MessagesPage.setData(mRt);
-      else if (APP_DATA && typeof window.MessagesPage.loadFromAppJson === "function") window.MessagesPage.loadFromAppJson(APP_DATA);
+    if (window.FacilitiesPage && typeof window.FacilitiesPage.open === "function") {
+      window.FacilitiesPage.open(fcRoute);
     }
-  } catch (e) {
-    log("Error opening messages: " + (e && e.message ? e.message : e));
+  } catch (e5) {
+    log("Error opening facilities: " + (e5 && e5.message ? e5.message : e5));
   }
 
   return;
 }
 
-    currentView = name;
 
-    if (viewWeather) viewWeather.className = "tx-view";
-    if (viewTV) viewTV.className = "tx-view";
-    if (viewMusic) viewMusic.className = "tx-view";
-
-    if (name === "home") {
-      if (viewWelcome) viewWelcome.className = "tx-view";
-      if (viewHome) viewHome.className = "tx-view is-active";
-      setHomeFocusById("tile-hotelinfo");
-    } else {
-      if (viewHome) viewHome.className = "tx-view";
-      if (viewWelcome) viewWelcome.className = "tx-view is-active";
-      setWelcomeFocus(0);
-    }
+  // ===== default views =====
+  if (name === "home") {
+    currentView = "home";
+    if (viewHome) viewHome.className = "tx-view is-active";
+    setHomeFocusById("tile-hotelinfo");
+    return;
   }
+
+  // welcome fallback
+  currentView = "welcome";
+  if (viewWelcome) viewWelcome.className = "tx-view is-active";
+  setWelcomeFocus(0);
+}
 
   function extractChannelsDataFromHtml(html) {
     html = String(html || "");
@@ -591,6 +578,10 @@
     showView("vod");
     return;
     }
+    if (tileId === "tile-spa") {
+    showView("facilities");
+    return;
+  }
 
 
     if (rt) {
@@ -622,6 +613,10 @@
         showView(prevView || "home");
         return;
         }
+      if (currentView === "facilities") {
+        showView(prevView || "home");
+      return;
+}
 
 
       if (currentView === "tv") {
@@ -737,12 +732,30 @@
 
       return;
     }
+    
 
     if (k === OK) { e.preventDefault(); onOk(); return; }
 
     if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
       e.preventDefault();
       onBack();
+      return;
+    }
+
+
+    if (currentView === "facilities") {
+      if (window.FacilitiesPage && typeof window.FacilitiesPage.handleKeyDown === "function") {
+        if (window.FacilitiesPage.handleKeyDown(e)) { e.preventDefault(); return; }
+      }
+
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+
+      if (k === OK) { e.preventDefault(); return; }
+
       return;
     }
 
@@ -988,7 +1001,7 @@
     if (!viewEl || !url) return;
 
     var bg = null;
-    try { bg = viewEl.querySelector(".tx-bg"); } catch (e) { bg = null; }
+    try { bg = viewEl.querySelector(".tx-bg, .fc-bg"); } catch (e) { bg = null; }
 
     var overlay = "linear-gradient(180deg, rgba(0,0,0,.25) 0%, rgba(0,0,0,.75) 70%, rgba(0,0,0,.95) 100%)";
 
