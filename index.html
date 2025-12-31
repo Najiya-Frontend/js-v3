@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="css/messages.css">
   <link rel="stylesheet" href="css/vod.css">
   <link rel="stylesheet" href="css/fdx.css">
+  <link rel="stylesheet" href="css/roomservice.css">
   
 
 
@@ -328,6 +329,57 @@
     <div class="fc-legend__group">
       <div class="fc-legend__item">
         <span>Facilities</span>
+      </div>
+    </div>
+  </footer>
+</section>
+
+<!-- ===================== ROOM SERVICE VIEW ===================== -->
+<!-- Add this section after the hotelinfo view in index.html -->
+
+<section id="view-roomservice" class="tx-view">
+  <div class="rs-bg"></div>
+  <div class="rs-vignette"></div>
+  <div class="rs-dim"></div>
+
+  <div id="rs-main" class="rs-main">
+    <!-- Left Sidebar -->
+    <div class="rs-left">
+      <div id="rs-page-title" class="rs-page-title">Room Service</div>
+      <div id="rs-submenu" class="rs-submenu"></div>
+    </div>
+
+    <!-- Right Content Area -->
+    <div class="rs-right">
+      <div id="rs-detail" class="rs-detail">
+        <div id="rs-detail-title" class="rs-detail-title">—</div>
+        <!-- Forms will be dynamically rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Legend -->
+  <footer class="rs-legend">
+    <div class="rs-legend__group">
+      <div class="rs-legend__item">
+        <span class="rs-legend__icon">↩</span>
+        <span>Back</span>
+      </div>
+      <div class="rs-legend__item">
+        <span class="rs-legend__icon">↕↔</span>
+        <span>Navigate</span>
+      </div>
+    </div>
+
+    <div class="rs-legend__group">
+      <div class="rs-legend__item">
+        <span>OK: Select / Confirm</span>
+      </div>
+    </div>
+
+    <div class="rs-legend__group">
+      <div class="rs-legend__item">
+        <span>Room Service</span>
       </div>
     </div>
   </footer>
@@ -674,6 +726,7 @@
   <script src="js/config.js"></script>
   <script src="js/utils/mac.util.js"></script>
   <script src="js/services/api.js"></script>
+  
   <script src="js/app/tvchannels.js"></script>
   <script src="js/app/weather.js"></script>
   <script src="js/app/music.js"></script>
@@ -681,6 +734,7 @@
   <script src="js/app/vod.js"></script>
   <script src="js/app/hotelinfo.js"></script>
   <script src="js/app/facilities.js"></script>
+  <script src="js/app/roomservice.js"></script>
   
 
   <script src="js/app/home.js"></script>
