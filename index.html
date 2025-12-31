@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TenX IPTV HZ UI </title>
   <meta name="color-scheme" content="dark">
+  <style>
+  #tx-loader{position:fixed;left:0;top:0;right:0;bottom:0;z-index:999999;display:block}
+  #tx-loader .tx-loader__bg{position:absolute;left:0;top:0;right:0;bottom:0;background:#000}
+  #tx-loader .tx-loader__img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:520px;height:auto}
+  </style>
+
   <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
   <link rel="stylesheet" href="css/home.css">
   <link rel="stylesheet" href="css/tvchannels.css">
@@ -12,13 +18,20 @@
   <link rel="stylesheet" href="css/music.css">
   <link rel="stylesheet" href="css/messages.css">
   <link rel="stylesheet" href="css/vod.css">
-  <link rel="stylesheet" href="css/facilities.css">
+  <link rel="stylesheet" href="css/fdx.css">
   
 
 
 </head>
 
 <body>
+
+  <!-- ===================== BOOT LOADER (TOP LEVEL) ===================== -->
+  <div id="tx-loader" class="tx-loader is-on" aria-hidden="true">
+    <div class="tx-loader__bg"></div>
+    <img class="tx-loader__img" src="assets/some-gif.gif" alt="Loading">
+  </div>
+
   <!-- Fixed 1920×1080 stage (scaled to screen) -->
   <div id="tx-stage" class="tx-stage">
     <div class="tx-app">
@@ -39,6 +52,7 @@
           </div>
         </header>
 
+      
 
       <!-- ===================== WELCOME VIEW ===================== -->
       <section id="view-welcome" class="tx-view is-active">
@@ -194,6 +208,60 @@
           </div>
         </main>
       </section>
+      <!-- ===================== HOTEL INFORMATION VIEW ===================== -->
+<section id="view-hotelinfo" class="tx-view">
+  <div class="fc-bg"></div>
+  <div class="fc-vignette"></div>
+  <div class="fc-dim"></div>
+
+  <div id="hi-main" class="fc-main">
+    <div class="fc-left">
+      <div id="hi-page-title" class="fc-page-title">Hotel Information</div>
+      <div id="hi-submenu" class="fc-submenu"></div>
+    </div>
+
+    <div class="fc-right">
+      <div id="hi-detail" class="fc-detail">
+        <div class="fc-detail-body">
+
+          <div class="fc-media">
+            <div class="fc-main-preview">
+              <img id="hi-main-img" src="" alt="">
+            </div>
+
+            <div class="fc-thumbs-row">
+              <div id="hi-slider-viewport" class="fc-thumbs-viewport">
+                <div id="hi-slider-track" class="fc-thumbs-track"></div>
+              </div>
+
+              <div id="hi-slider-arrow-left" class="fc-slider-arrow fc-slider-arrow--left">◀</div>
+              <div id="hi-slider-arrow-right" class="fc-slider-arrow fc-slider-arrow--right">▶</div>
+            </div>
+          </div>
+
+          <div class="fc-desc-panel">
+            <div id="hi-detail-title" class="fc-detail-title">—</div>
+            <div id="hi-description" class="fc-description fc-description--side"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="fc-legend">
+    <div class="fc-legend__group">
+      <div class="fc-legend__item"><span class="fc-legend__icon">↩</span><span>Back</span></div>
+    </div>
+    <div class="fc-legend__group">
+      <div class="fc-legend__item"><span>OK: View Details</span></div>
+    </div>
+    <div class="fc-legend__group">
+      <div class="fc-legend__item"><span>Hotel Information</span></div>
+    </div>
+  </footer>
+</section>
+
 <!-- ===================== FACILITIES VIEW ===================== -->
 <section id="view-facilities" class="tx-view">
   <div class="fc-bg"></div>
@@ -601,6 +669,8 @@
     </div>
   </div>
 
+
+
   <script src="js/config.js"></script>
   <script src="js/utils/mac.util.js"></script>
   <script src="js/services/api.js"></script>
@@ -609,7 +679,9 @@
   <script src="js/app/music.js"></script>
   <script src="js/app/messages.js"></script>
   <script src="js/app/vod.js"></script>
+  <script src="js/app/hotelinfo.js"></script>
   <script src="js/app/facilities.js"></script>
+  
 
   <script src="js/app/home.js"></script>
   

@@ -12,7 +12,7 @@ html, body{
   background:#000;
   overflow:hidden;
   color:#fff;
-  font-family:'Times New Roman', Times, serif;
+  font-family:'Poppins', sans-serif;
 }
 
 *{ box-sizing:border-box; }
@@ -96,7 +96,7 @@ html, body{
 }
 .tx-brand__logo{
   display:block;
-  height:78px;          /* matches TenX text height */
+  height:76px;          /* matches TenX text height */
   width:auto;
   max-width:360px;
 }
@@ -108,11 +108,11 @@ html, body{
   line-height:1;
 }
 .tx-brand__sub{
-  font-family:'Times New Roman', Times, serif;
+  font-family:'Poppins', sans-serif;
   font-size:30px;
   opacity:.55;
   margin-top:2px;
-  padding-left: 40px;
+  /* padding-left: 40px; */
 }
 
 /* meta spacing without gap */
@@ -389,3 +389,41 @@ body.lang-ar .tx-stage{ direction:ltr; }
   font-weight:900;
 }
 
+/* ===================== BOOT LOADER (WELCOME ONLY) ===================== */
+/* Put loader DIV **inside #tx-stage** so it scales with your stage */
+.tx-loader{
+  position:absolute;
+  left:0;
+  top:0;
+  right:0;
+  bottom:0;
+  z-index:100000;      /* higher than topbar (9999) */
+  opacity:0;
+  pointer-events:none;
+  transition: opacity 160ms ease;
+}
+
+.tx-loader.is-on{
+  opacity:1;
+  pointer-events:auto; /* block keys/clicks while booting */
+}
+
+.tx-loader__bg{
+  position:absolute;
+  left:0;
+  top:0;
+  right:0;
+  bottom:0;
+  background: rgba(0,0,0,.55);
+}
+
+.tx-loader__img{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform: translate(-50%,-50%);
+  width:180px;     /* change size if needed */
+  height:auto;
+}
+
+/* ========================= END OF home.css ========================= */

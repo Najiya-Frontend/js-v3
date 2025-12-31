@@ -14,12 +14,13 @@
   var viewMessages = document.getElementById("view-messages");
   var viewVOD = document.getElementById("view-vod");
   var viewFacilities = document.getElementById("view-facilities");
+  var viewHotelInfo = document.getElementById("view-hotelinfo");
+
 
   
   var GUEST_FULL = "";
   var ROOM_NO = "";
-  var TEMP_TXT = "";
-
+  
   var btnContinue = document.getElementById("btn-continue");
   var toggleTV = document.getElementById("toggle-tv");
   var toggleLang = document.getElementById("toggle-lang");
@@ -67,6 +68,111 @@
   };
 
   function qs(id) { return document.getElementById(id); }
+
+    // ===================== BOOT LOADER (WELCOME ONLY) =====================
+  var txLoaderEl = document.getElementById("tx-loader");
+
+  function loaderShow() {
+    if (!txLoaderEl) return;
+    if (txLoaderEl.className.indexOf("is-on") < 0) txLoaderEl.className += " is-on";
+  }
+
+  function loaderHide() {
+    if (!txLoaderEl) return;
+    txLoaderEl.className = txLoaderEl.className.replace(/\bis-on\b/g, "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+  }
+
+  function getBgUrlFromEl(el) {
+    if (!el || !el.querySelector) return "";
+    var bg = null;
+    try { bg = el.querySelector(".tx-bg, .fc-bg"); } catch (e) { bg = null; }
+    if (!bg) return "";
+
+    var s = "";
+    try { s = bg.style.backgroundImage || ""; } catch (e2) { s = ""; }
+    if (!s) return "";
+
+    // handles: linear-gradient(...), url('...')
+    var m = /url\(\s*['"]?([^'")]+)['"]?\s*\)/i.exec(s);
+    return (m && m[1]) ? m[1] : "";
+  }
+
+  function preloadImage(url, cb) {
+    url = String(url || "");
+    if (!url) { cb && cb(); return; }
+
+    var done = false;
+    function finish() { if (done) return; done = true; cb && cb(); }
+
+    try {
+      var img = new Image();
+      img.onload = finish;
+      img.onerror = finish;
+      img.src = url;
+
+      // if cached
+      if (img.complete) finish();
+      // failsafe
+      setTimeout(finish, 3500);
+    } catch (e) {
+      cb && cb();
+    }
+  }
+
+  function waitImgEl(imgEl, cb) {
+    if (!imgEl || !imgEl.src) { cb && cb(); return; }
+
+    // if already loaded
+    try {
+      if (imgEl.complete && imgEl.naturalWidth > 0) { cb && cb(); return; }
+    } catch (e) {}
+
+    var done = false;
+    function finish() { if (done) return; done = true; cb && cb(); }
+
+    imgEl.onload = finish;
+    imgEl.onerror = finish;
+
+    // failsafe
+    setTimeout(finish, 3500);
+  }
+
+  function hideLoaderWhenWelcomeReady() {
+    // Only care about boot welcome.
+    if (currentView !== "welcome") { loaderHide(); return; }
+
+    var pending = 0;
+    var done = false;
+
+    function oneDone() {
+      pending--;
+      if (pending <= 0) finish();
+    }
+
+    function finish() {
+      if (done) return;
+      done = true;
+      loaderHide();
+    }
+
+    // Wait welcome bg image (after hydrateFromRoutes applied it)
+    var bgUrl = getBgUrlFromEl(viewWelcome);
+    if (bgUrl) { pending++; preloadImage(bgUrl, oneDone); }
+
+    // Wait brand logo if it’s shown
+    var logoEl = qs("brand-logo");
+    if (logoEl && logoEl.style && logoEl.style.display !== "none" && logoEl.src) {
+      pending++;
+      waitImgEl(logoEl, oneDone);
+    }
+
+    // If nothing to wait, hide immediately
+    if (pending === 0) finish();
+
+    // Global failsafe (never keep loader forever)
+    setTimeout(finish, 4500);
+  }
+
 
   function log() {
     try { if (window.console && console.log) console.log.apply(console, arguments); } catch (e) {}
@@ -342,8 +448,14 @@
     if (currentView === "facilities" && name !== "facilities") {
       if (window.FacilitiesPage && typeof window.FacilitiesPage.close === "function") {
       window.FacilitiesPage.close();
-  }
-}
+      }
+    }
+    if (currentView === "hotelinfo" && name !== "hotelinfo") {
+      if (window.HotelInfoPage && typeof window.HotelInfoPage.close === "function") {
+        window.HotelInfoPage.close();
+      }
+    }
+
     // ===== ALWAYS reset all view classes first (THIS fixes your overlay bug) =====
   if (viewWelcome) viewWelcome.className = "tx-view";
   if (viewHome) viewHome.className = "tx-view";
@@ -353,6 +465,8 @@
   if (viewMessages) viewMessages.className = "tx-view";
   if (viewVOD) viewVOD.className = "tx-view";
   if (viewFacilities) viewFacilities.className = "tx-view"
+  if (viewHotelInfo) viewHotelInfo.className = "tx-view";
+
 
     setTopbarTheme(name);
 
@@ -448,30 +562,51 @@
     }
     return;
   }
-  // ✅ NEW: Facilities view handler
+  
     if (name === "facilities") {
-  prevView = currentView || "home";
-  currentView = "facilities";
+    prevView = currentView || "home";
+    currentView = "facilities";
 
-  if (viewFacilities) viewFacilities.className = "tx-view is-active";
+    if (viewFacilities) viewFacilities.className = "tx-view is-active";
+
+    try {
+      var fcRoute = PAGE_ROUTE_BY_KEY["KEY_FACILITIES"] || findByKey("KEY_FACILITIES", false);
+
+      // optional: page bg if backend has it
+      if (fcRoute && fcRoute.route_bg && viewFacilities) {
+        setPageBg(viewFacilities, resolveRouteBgValue(fcRoute.route_bg));
+      }
+
+      if (window.FacilitiesPage && typeof window.FacilitiesPage.open === "function") {
+        window.FacilitiesPage.open(fcRoute);
+      }
+    } catch (e5) {
+      log("Error opening facilities: " + (e5 && e5.message ? e5.message : e5));
+    }
+
+    return;
+  }
+  if (name === "hotelinfo") {
+  prevView = currentView || "home";
+  currentView = "hotelinfo";
+  if (viewHotelInfo) viewHotelInfo.className = "tx-view is-active";
 
   try {
-    var fcRoute = PAGE_ROUTE_BY_KEY["KEY_FACILITIES"] || findByKey("KEY_FACILITIES", false);
+    var hiRoute = PAGE_ROUTE_BY_KEY["KEY_OUR_SERVICES"] || findByKey("KEY_OUR_SERVICES", false);
 
-    // optional: page bg if backend has it
-    if (fcRoute && fcRoute.route_bg && viewFacilities) {
-      setPageBg(viewFacilities, resolveRouteBgValue(fcRoute.route_bg));
+    if (hiRoute && hiRoute.route_bg && viewHotelInfo) {
+      setPageBg(viewHotelInfo, resolveRouteBgValue(hiRoute.route_bg));
     }
 
-    if (window.FacilitiesPage && typeof window.FacilitiesPage.open === "function") {
-      window.FacilitiesPage.open(fcRoute);
+    if (window.HotelInfoPage && typeof window.HotelInfoPage.open === "function") {
+      window.HotelInfoPage.open(hiRoute);
     }
-  } catch (e5) {
-    log("Error opening facilities: " + (e5 && e5.message ? e5.message : e5));
+  } catch (e) {
+    log("Error opening hotelinfo: " + (e && e.message ? e.message : e));
   }
-
   return;
 }
+
 
 
   // ===== default views =====
@@ -581,7 +716,12 @@
     if (tileId === "tile-spa") {
     showView("facilities");
     return;
-  }
+    }
+    if (tileId === "tile-hotelinfo") {
+      showView("hotelinfo");
+      return;
+    }
+
 
 
     if (rt) {
@@ -616,7 +756,12 @@
       if (currentView === "facilities") {
         showView(prevView || "home");
       return;
-}
+      }
+      if (currentView === "hotelinfo") {
+        showView(prevView || "home");
+        return;
+      }
+
 
 
       if (currentView === "tv") {
@@ -758,6 +903,20 @@
 
       return;
     }
+
+    if (currentView === "hotelinfo") {
+      if (window.HotelInfoPage && typeof window.HotelInfoPage.handleKeyDown === "function") {
+        if (window.HotelInfoPage.handleKeyDown(e)) { e.preventDefault(); return; }
+      }
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+      if (k === OK) { e.preventDefault(); return; }
+      return;
+    }
+
 
     if (currentView === "welcome") {
       if (k === DOWN) { if (welcomeFocusIndex === 0) setWelcomeFocus(1); return; }
@@ -1359,6 +1518,9 @@
       APP_DATA = app;
       log("app_json loaded");
       hydrateFromRoutes(app);
+      // ✅ Hide boot loader once Welcome assets are ready
+      hideLoaderWhenWelcomeReady();
+
       
       if (currentView === "tv" && window.TVChannels && typeof window.TVChannels.updateAppJson === "function") {
         window.TVChannels.updateAppJson(APP_DATA);
@@ -1370,6 +1532,8 @@
 
     }, function (err) {
       log("app_json error:", err);
+       // ✅ don’t block UI forever if backend is down
+      setTimeout(function(){ loaderHide(); }, 800);
     });
   }
 
@@ -1403,6 +1567,9 @@
     if (h.indexOf("#/music") === 0) { showView("music"); return; }
     if (h.indexOf("#/vod") === 0) { showView("vod"); return; }
     if (h.indexOf("#/messages") === 0) { showView("messages"); return; }
+    if (h.indexOf("#/hotelinfo") === 0) { showView("hotelinfo"); return; }
+    if (h.indexOf("#/facilities") === 0) { showView("facilities"); return; }
+    if (h.indexOf("#/tv") === 0) { showView("tv"); return; }
 
 
     if (hasSeenWelcome()) showView("home");
@@ -1416,6 +1583,8 @@
   fitStage();
   updateClock();
   setInterval(updateClock, 15000);
+
+  loaderShow();
 
   forceWelcomeOnBoot();
   applyLang();
