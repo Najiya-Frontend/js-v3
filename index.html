@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="css/vod.css">
   <link rel="stylesheet" href="css/fdx.css">
   <link rel="stylesheet" href="css/roomservice.css">
+  <link rel="stylesheet" href="css/dining.css">
   
 
 
@@ -384,6 +385,90 @@
     </div>
   </footer>
 </section>
+<!-- ===================== IN-ROOM DINING VIEW ===================== -->
+<!-- ===================== IN-ROOM DINING VIEW ===================== -->
+<section id="view-dining" class="tx-view">
+  <div class="dn-bg"></div>
+  <div class="dn-vignette"></div>
+  <div class="dn-dim"></div>
+
+  <div id="dn-main" class="dn-main">
+    <!-- Left Sidebar -->
+    <div class="dn-left">
+      <div id="dn-page-title" class="dn-page-title">In-Room Dining</div>
+      <div id="dn-submenu" class="dn-submenu"></div>
+    </div>
+
+    <div class="dn-divider"></div>
+
+    <!-- Right Content Area -->
+    <div class="dn-right">
+      <div id="dn-grid-viewport" class="dn-grid-viewport">
+        <div id="dn-grid" class="dn-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ Detail View Overlay (MUST be OUTSIDE .dn-right so it covers full screen) -->
+  <div id="dn-detail" class="dn-detail">
+    <div class="dn-detail__content">
+      <div class="dn-detail__images">
+        <div id="dn-detail-main-image" class="dn-detail__main-image"></div>
+        <div id="dn-detail-thumbs" class="dn-detail__thumbs"></div>
+      </div>
+
+      <div class="dn-detail__info">
+        <div id="dn-detail-name" class="dn-detail__name">—</div>
+        
+        <div id="dn-detail-desc" class="dn-detail__desc">—</div>
+        <div id="dn-detail-badges" class="dn-detail__badges"></div>
+        <div id="dn-detail-price" class="dn-detail__price">0.00 SAR</div>
+
+        <div class="dn-detail__actions">
+          <div class="dn-detail__quantity">
+            
+            <div id="dn-qty-plus" class="dn-detail__qty-btn">+</div>
+            <div id="dn-detail-qty-value" class="dn-detail__qty-value">1</div>
+            <div id="dn-qty-minus" class="dn-detail__qty-btn">−</div>
+          </div>
+
+          <div id="dn-detail-add-btn" class="dn-detail__add-btn">
+            
+            <span>Add to Cart</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Legend -->
+  <footer class="dn-legend">
+    <div class="dn-legend__group">
+      <div class="dn-legend__item">
+        <span class="dn-legend__icon">↩</span>
+        <span>Back</span>
+      </div>
+      <div class="dn-legend__item">
+        <span class="dn-legend__icon">↕↔</span>
+        <span>Navigate</span>
+      </div>
+    </div>
+
+    <div class="dn-legend__group">
+      <div class="dn-legend__item">
+        <span>OK: View Item / Add to Cart</span>
+      </div>
+    </div>
+
+    <div id="toggle-lang" class="tx-toggle tx-focusable" data-focus="welcome" data-focus-index="2">
+      <span class="tx-dot" aria-hidden="true"></span>
+      <span id="txt-lang">Go to Cart</span>
+    </div>
+  </footer>
+</section>
+
+
       <!-- ===================== MESSAGES VIEW ===================== -->
 <section id="view-messages" class="tx-view">
   <div class="mx-msg" id="mx-msg-root">
@@ -726,7 +811,6 @@
   <script src="js/config.js"></script>
   <script src="js/utils/mac.util.js"></script>
   <script src="js/services/api.js"></script>
-  
   <script src="js/app/tvchannels.js"></script>
   <script src="js/app/weather.js"></script>
   <script src="js/app/music.js"></script>
@@ -735,6 +819,7 @@
   <script src="js/app/hotelinfo.js"></script>
   <script src="js/app/facilities.js"></script>
   <script src="js/app/roomservice.js"></script>
+  <script src="js/app/dining.js"></script>
   
 
   <script src="js/app/home.js"></script>

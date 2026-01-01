@@ -16,6 +16,7 @@
   var viewFacilities = document.getElementById("view-facilities");
   var viewHotelInfo = document.getElementById("view-hotelinfo");
   var viewRoomService = document.getElementById("view-roomservice");
+  var viewDining = document.getElementById("view-dining");
 
 
   
@@ -461,6 +462,11 @@
           window.RoomServicePage.close();
         }
       }
+      if (currentView === "dining" && name !== "dining") {
+      if (window.DiningPage && typeof window.DiningPage.close === "function") {
+        window.DiningPage.close();
+      }
+    }
 
     // ===== ALWAYS reset all view classes first (THIS fixes your overlay bug) =====
   if (viewWelcome) viewWelcome.className = "tx-view";
@@ -473,6 +479,7 @@
   if (viewFacilities) viewFacilities.className = "tx-view"
   if (viewHotelInfo) viewHotelInfo.className = "tx-view";
   if (viewRoomService) viewRoomService.className = "tx-view";
+  if (viewDining) viewDining.className = "tx-view";
 
 
     setTopbarTheme(name);
@@ -513,6 +520,26 @@
       }
       return;
     }
+    if (name === "dining") {
+    prevView = currentView || "home";
+    currentView = "dining";
+    if (viewDining) viewDining.className = "tx-view is-active";
+
+    try {
+      var diningRoute = PAGE_ROUTE_BY_KEY["KEY_DINING_IN_ROOM"] || findByKey("KEY_DINING_IN_ROOM", false);
+
+      if (diningRoute && diningRoute.route_bg && viewDining) {
+        setPageBg(viewDining, resolveRouteBgValue(diningRoute.route_bg));
+      }
+
+      if (window.DiningPage && typeof window.DiningPage.open === "function") {
+        window.DiningPage.open(diningRoute);
+      }
+    } catch (e) {
+      log("Error opening dining: " + (e && e.message ? e.message : e));
+    }
+    return;
+  }
     if (name === "weather") {
     prevView = currentView || "home";
     currentView = "weather";
@@ -751,6 +778,10 @@
         showView("roomservice");
         return;
       }
+    if (tileId === "tile-dining") {
+    showView("dining");
+    return;
+  }
 
 
 
@@ -859,6 +890,18 @@
     if (currentView === "roomservice") {
       if (window.RoomServicePage && typeof window.RoomServicePage.handleKeyDown === "function") {
         if (window.RoomServicePage.handleKeyDown(e)) { e.preventDefault(); return; }
+      }
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+      if (k === OK) { e.preventDefault(); return; }
+      return;
+    }
+    if (currentView === "dining") {
+      if (window.DiningPage && typeof window.DiningPage.handleKeyDown === "function") {
+        if (window.DiningPage.handleKeyDown(e)) { e.preventDefault(); return; }
       }
       if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
         e.preventDefault();

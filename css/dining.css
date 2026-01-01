@@ -1,0 +1,610 @@
+/* css/dining.css — In-Room Dining page (1920x1080, Tizen 4 safe) */
+
+#view-dining {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  display: none;
+}
+#view-dining.is-active {
+  display: block;
+}
+
+/* Background */
+.dn-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: #000;
+  background-size: cover;
+  background-position: center;
+}
+
+.dn-vignette {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.65) 75%,
+    rgba(0, 0, 0, 0.92) 100%
+  );
+}
+
+.dn-dim {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1;
+}
+
+/* Main Layout (Figma positions) */
+.dn-main{
+  position:absolute;
+  left:0;
+  top:180px;
+  width:1920px;
+  height:800px; /* 1080 - topbar(180) - footer(100) */
+  z-index:2;
+}
+
+.dn-left{
+  position:absolute;
+  left:85px;
+  top:0;
+  width:642px;
+  height:100%;
+  padding:0;
+  background:transparent;
+  border-right:0;
+  overflow:hidden; /* CRITICAL: prevent spill into right */
+}
+
+/* 3 columns grid: 190*3 + 35*2 = 640 (fits 642) */
+.dn-submenu{
+  width:677px;
+  height:520px; /* viewport height for tiles */
+  display:flex;
+  flex-direction:row;  /* IMPORTANT: real grid layout */
+  flex-wrap:wrap;
+  overflow:hidden;     /* keep inside left area */
+  transform:translateY(0px);
+  transition:transform 0.25s ease;
+  /* FIX 1: keep same row gaps always (no stretching when only 1–2 rows exist) */
+
+  align-content: flex-start;   /* IMPORTANT */
+  justify-content: flex-start; /* safe */
+
+
+}
+
+/* Title like Figma */
+.dn-page-title{
+  font-size:44px;
+  font-weight:900;
+  color:rgba(255,255,255,0.96);
+  margin:0 0 26px 0;
+  text-shadow:0 8px 22px rgba(0,0,0,0.55);
+}
+/* Divider (between tiles and cards) */
+.dn-divider{
+  position:absolute;
+  left:814px; /* centered-ish between 727 and 901 */
+  top:120px;
+  bottom:120px;
+  width:3px;
+  border-radius:3px;
+  background:rgba(255,255,255,0.22);
+  box-shadow:0 10px 30px rgba(0,0,0,0.35);
+}
+
+.dn-submenu-item{
+  width:190px;
+  height:150px;
+  margin:0 35px 35px 0;
+  border-radius:18px;
+  background:rgba(0,0,0,0.55);
+  border:2px solid rgba(255, 255, 255, 0.8);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:14px 12px;
+  text-align:center;
+
+  text-transform:uppercase;
+  letter-spacing:0.6px;
+  font-size:18px;
+  font-weight:700;
+  color:rgba(255,255,255,0.88);
+}
+/* remove old focused bar */
+.dn-submenu-item:before{ display:none; content:none; }
+
+.dn-submenu-item__icon{
+  width:74px;
+  height:74px;
+  margin-bottom:12px;
+  background-size:contain;
+  background-position:center;
+  background-repeat:no-repeat;
+  opacity:0.95;
+}
+
+/* label inside tile */
+.dn-submenu-item__label{
+  max-width:160px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.dn-submenu-item.is-focused{
+  border-color:rgba(37,99,235,1);
+  box-shadow:0 0 0 3px rgba(37,99,235,0.35), 0 16px 42px rgba(0,0,0,0.55);
+  background:rgba(0,0,0,0.45);
+}
+
+/* RIGHT: items list block (x:901 → 1746) */
+.dn-right{
+  position:absolute;
+  left:950px;
+  top:70px;
+  right:90px; /* 1920 - 1746 = 174 */
+  bottom:0;
+}
+
+
+
+.dn-grid{
+  position:absolute;
+  left:0;
+  top:0;
+  width:100%;
+  transform:translateY(0px);
+  transition:transform 0.28s ease;
+}
+/* FIX 2A: hard clip so only 3 cards can ever be visible */
+.dn-grid-viewport{
+  position:absolute;
+  left:0;
+  top:0;
+  right:0;
+  height:618px;     /* 3 cards: 190*3 + 24*2 = 618 */
+  overflow:hidden;  /* CRITICAL */
+}
+
+
+/* Figma horizontal card (852 x 190) */
+.dn-item-card{
+  position:absolute;
+  left:0;
+  width:852px;
+  height:190px;
+  border-radius:22px;
+  overflow:hidden;
+
+  background:rgba(0,0,0,0.50);
+  border:2px solid rgba(255, 255, 255, 0.8);
+  box-shadow:0 18px 48px rgba(0,0,0,0.40);
+}
+/* image */
+.dn-item-card__thumb{
+  width:150px;
+  height:150px;
+  border-radius:18px;
+  background-size:cover;
+  background-position:center;
+  background-color:rgba(255,255,255,0.06);
+  flex:0 0 auto;
+}
+/* middle meta */
+.dn-item-card__meta{
+  flex:1 1 auto;
+  overflow:hidden;
+}
+.dn-item-card__image {
+  width: 100%;
+  height: 260px;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+/* row layout inside card */
+.dn-item-card__row{
+  position:absolute;
+  left:0; top:0; right:0; bottom:0;
+  display:flex;
+  align-items:center;
+  padding:20px 22px;
+  gap:22px;
+}
+.dn-item-card__info {
+  padding: 16px;
+  position: relative;
+}
+
+.dn-item-card__name{
+  font-size:28px;
+  font-weight:900;
+  color:rgba(255,255,255,0.96);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin-bottom:8px;
+}
+
+.dn-item-card__desc{
+  font-size:18px;
+  font-weight:600;
+  color:rgba(255,255,255,0.70);
+  line-height:1.35;
+  max-height:48px;
+  overflow:hidden;
+  margin-bottom:14px;
+}
+/* right actions */
+.dn-item-card__actions{
+  width:220px;
+  flex:0 0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  gap:12px;
+}
+
+/* button */
+.dn-item-card__btn{
+  height:54px;
+  padding:0 18px;
+  border-radius:14px;
+  border:2px solid rgba(255,255,255,0.85);
+  background:transparent;
+  color:rgba(255,255,255,0.95);
+  font-size:18px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:160px;
+}
+
+.dn-item-card.is-focused .dn-item-card__btn{
+  border-color:rgba(37,99,235,1);
+  box-shadow:0 0 0 3px rgba(37,99,235,0.25);
+}
+.dn-item-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+/* price */
+.dn-item-card__price{
+  font-size:22px;
+  font-weight:900;
+  color:rgba(255,255,255,0.92);
+}
+
+
+.dn-item-card__badges {
+  display: flex;
+  gap: 6px;
+}
+
+.dn-item-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dn-item-card.is-focused{
+  border-color:rgba(37,99,235,1);
+  box-shadow:0 0 0 3px rgba(37,99,235,0.35), 0 20px 58px rgba(0,0,0,0.55);
+}
+
+/* ====== DETAIL (Add to Cart) — make it match the Figma modal card ====== */
+
+/* full-screen dim */
+.dn-detail{
+  position:absolute;
+  left:0; top:0; right:0; bottom:0; /* ✅ fill the whole view */
+  display:none;
+  background:rgba(0,0,0,0.65);
+  z-index:10;
+}
+
+.dn-detail.is-active{ display:block; }
+
+/* centered modal card (NOT full-screen) */
+.dn-detail__content{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+
+  width:1240px;          /* adjust if needed */
+  height:520px;          /* matches your figma-style modal height */
+  box-sizing:border-box;
+
+  display:flex;
+  gap:60px;
+
+  background:rgba(0,0,0);
+  border:2px solid rgb(255, 255, 255);
+  border-radius:22px;
+  padding:56px;
+  overflow:hidden;       /* hard clip anything inside */
+}
+
+
+/* left image */
+.dn-detail__images{
+  width:520px;
+  flex:0 0 auto;
+}
+.dn-detail__main-image{
+  width:520px;
+  height:360px;
+  border-radius:18px;
+  background-size:cover;
+  background-position:center;
+  background-color:rgba(255,255,255,0.06);
+  box-shadow:0 14px 44px rgba(0,0,0,0.55);
+  margin:0; /* kill old spacing */
+}
+
+/* hide thumbs (Figma modal has no thumbs row) */
+.dn-detail__thumbs{ display:none !important; }
+
+/* right info */
+.dn-detail__info{
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+.dn-detail__name{
+  font-size:54px;
+  font-weight:900;
+  line-height:1.05;
+  color:rgba(255,255,255,0.97);
+  margin:0 0 14px 0;
+}
+.dn-detail__desc{
+  font-size:22px;
+  font-weight:600;
+  line-height:1.55;
+  color:rgba(255,255,255,0.86);
+  margin:0 0 18px 0;
+
+  max-height:140px;
+  overflow:hidden;      /* match figma: no scrollbars here */
+}
+.dn-detail__badges{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin:12px 0 12px 0;
+  flex-wrap:wrap;
+}
+.dn-detail__badge{
+  padding:5px 5px;
+  border-radius:999px;
+  font-size:16px;
+  font-weight:600;
+  color:rgba(255,255,255,0.92);
+  background:rgba(255,255,255,0.14);
+  border:2px solid rgba(255,255,255,0.18);
+}
+.dn-detail__badge--ok{
+  background:rgba(34,197,94,0.22);
+  border-color:rgba(34,197,94,0.40);
+}
+.dn-detail__badge--off{
+  background:rgba(239,68,68,0.20);
+  border-color:rgba(239,68,68,0.40);
+}
+
+/* price */
+.dn-detail__price{
+  font-size:34px;
+  font-weight:900;
+  color:rgba(255,255,255,0.95);
+  margin:0 0 18px 0;
+}
+
+/* bottom row: Add button left, stepper right */
+.dn-detail__actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:28px;
+  margin-top:auto;
+  padding-top:0px;
+  flex-wrap:nowrap;          /* ✅ never wrap to next line */
+}
+
+/* Add to Cart button (outline like figma) */
+.dn-detail__add-btn{
+  height:72px;
+  width:270px;               /* ✅ hard cap so it stays inside modal */
+  max-width:270px;
+
+  padding:0 26px;
+  border-radius:18px;
+  border:2px solid rgba(255,255,255,0.90);
+  background:transparent;
+  color:rgba(255,255,255,0.96);
+  font-size:22px;
+  font-weight:800;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+
+  flex:0 0 auto;             /* ✅ don’t stretch */
+  white-space:nowrap;        /* ✅ keep on one line */
+  overflow:hidden;           /* ✅ safety */
+  box-sizing:border-box;
+}
+.dn-detail__add-btn span:first-child{
+  font-size:34px; /* bag icon */
+  line-height:1;
+}
+
+/* quantity stepper (compact, like figma) */
+/* quantity stepper (compact, fixed) */
+.dn-detail__quantity{
+  height:72px;
+  padding:10px 14px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.10);
+  border:2px solid rgba(255,255,255,0.22);
+
+  display:flex;
+  align-items:center;
+  gap:18px;
+
+  flex:0 0 auto;             /* ✅ don’t shrink/stretch */
+  box-sizing:border-box;
+}
+.dn-detail__qty-btn{
+  width:60px;
+  height:54px;
+  border-radius:14px;
+  background:rgba(255,255,255,0.12);
+  border:2px solid rgba(255,255,255,0.18);
+  color:rgba(255,255,255,0.95);
+  font-size:34px;
+  font-weight:900;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  flex:0 0 auto;
+  box-sizing:border-box;
+}
+.dn-detail__qty-value{
+  min-width:54px;
+  text-align:center;
+  font-size:32px;
+  font-weight:900;
+  color:rgba(255,255,255,0.95);
+  flex:0 0 auto;
+}
+
+/* focus rings */
+.dn-detail__qty-btn.is-focused,
+.dn-detail__add-btn.is-focused{
+  border-color:rgba(37,99,235,1);
+  box-shadow:0 0 0 3px rgba(37,99,235,0.35);
+}
+
+/* Bottom Legend */
+.dn-legend {
+  position: absolute;
+  left: 56px;
+  right: 56px;
+  bottom: 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 28px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dn-legend__group {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.dn-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dn-legend__icon {
+  font-size: 32px;
+}
+
+/* Z-index layering */
+#view-dining {
+  z-index: 1;
+}
+.dn-bg {
+  z-index: 0;
+}
+.dn-vignette {
+  z-index: 1;
+}
+.dn-dim {
+  z-index: 1;
+}
+.dn-main {
+  z-index: 2;
+}
+.dn-detail {
+  z-index: 10;
+}
+.dn-legend {
+  z-index: 3;
+}
+
+/* Scrollbar for description */
+.dn-detail__desc::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dn-detail__desc::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.dn-detail__desc::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.dn-detail__desc::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+.dn-pill{
+  height:26px;
+  line-height:26px;
+  padding:0 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:800;
+  color:rgba(255,255,255,0.92);
+  background:rgba(255,255,255,0.14);
+  border:1px solid rgba(255,255,255,0.18);
+}
+
+.dn-pill--ok{
+  background:rgba(34,197,94,0.20);
+  border-color:rgba(34,197,94,0.35);
+}
+
+.dn-pill--off{
+  background:rgba(239,68,68,0.18);
+  border-color:rgba(239,68,68,0.35);
+}

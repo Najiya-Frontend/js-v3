@@ -1,3 +1,4 @@
+//services/api.js
 (function (w) {
   "use strict";
 
@@ -176,6 +177,21 @@
 
     return p;
   }
+  // ===============Dining.js api=================
+function stripHtmlTags(html) {
+  html = String(html || "");
+  html = html.replace(/<br\s*\/?>/gi, "\n");
+  html = html.replace(/<\/p>/gi, "\n");
+  html = html.replace(/<[^>]+>/g, "");
+  html = html.replace(/&nbsp;/g, " ");
+  html = html.replace(/&amp;/g, "&");
+  html = html.replace(/&lt;/g, "<");
+  html = html.replace(/&gt;/g, ">");
+  html = html.replace(/&quot;/g, '"');
+  return html;
+}
+
+
 
   function getAppDataNormalized(cb) {
     var p = {
@@ -315,6 +331,7 @@
     // ✅ NEW
     getDeviceInfo: function () { return safeGetDeviceInfo(); },
     rewriteAssetUrl: function (url) { return rewriteAssetUrl(url); },
+    stripHtmlTags: function (html) { return stripHtmlTags(html); },
     createTicket: function (p) { return createTicket(p, function () {}); },
 
     liveClient: { subscribe: function () {} }
