@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="css/fdx.css">
   <link rel="stylesheet" href="css/roomservice.css">
   <link rel="stylesheet" href="css/dining.css">
+  <link rel="stylesheet" href="css/cart.css">
   
 
 
@@ -385,7 +386,7 @@
     </div>
   </footer>
 </section>
-<!-- ===================== IN-ROOM DINING VIEW ===================== -->
+
 <!-- ===================== IN-ROOM DINING VIEW ===================== -->
 <section id="view-dining" class="tx-view">
   <div class="dn-bg"></div>
@@ -468,6 +469,79 @@
   </footer>
 </section>
 
+<!-- ===================== CART VIEW ===================== -->
+<section id="view-cart" class="tx-view">
+  <!-- Background layers -->
+  <div class="cart-bg"></div>
+  <div class="cart-vignette"></div>
+  <div class="cart-dim"></div>
+
+  <!-- Main content -->
+  <div class="cart-main">
+    <div id="cart-page-title" class="cart-page-title">Cart</div>
+
+    <div class="cart-table-container">
+      <table class="cart-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th style="text-align:right;">Total</th>
+          </tr>
+        </thead>
+
+        <tbody id="cart-table-body">
+          <!-- rows injected by cart.js -->
+        </tbody>
+      </table>
+
+      <!-- Empty state (shown when cart is empty) -->
+      <div id="cart-empty-state" class="cart-empty" style="display:none;">
+        <div class="cart-empty-icon">🛒</div>
+        <div class="cart-empty-text">Your cart is empty</div>
+        <div class="cart-empty-subtext">Add items from Dining to place an order</div>
+      </div>
+    </div>
+
+    <!-- Footer (total + place order) -->
+    <div class="cart-footer">
+      <div class="cart-total-section">
+        <div class="cart-total-label">Total</div>
+        <div id="cart-total-amount" class="cart-total-amount">0.00 SAR</div>
+      </div>
+
+      <button id="cart-place-order-btn" class="cart-place-order-btn" type="button">
+        Place Order
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom legend -->
+  <div class="cart-legend">
+    <div class="cart-legend__group">
+      <div class="cart-legend__item">
+        <span class="cart-legend__icon">⟵</span>
+        <span>Back</span>
+      </div>
+      <div class="cart-legend__item">
+        <span class="cart-legend__icon">▲▼</span>
+        <span>Move</span>
+      </div>
+    </div>
+
+    <div class="cart-legend__group">
+      <div class="cart-legend__item">
+        <span class="cart-legend__icon">◀▶</span>
+        <span>Qty</span>
+      </div>
+      <div class="cart-legend__item">
+        <span class="cart-legend__icon">OK</span>
+        <span>Select</span>
+      </div>
+    </div>
+  </div>
+</section>
 
       <!-- ===================== MESSAGES VIEW ===================== -->
 <section id="view-messages" class="tx-view">
@@ -820,6 +894,7 @@
   <script src="js/app/facilities.js"></script>
   <script src="js/app/roomservice.js"></script>
   <script src="js/app/dining.js"></script>
+  <script src="js/app/cart.js"></script>
   
 
   <script src="js/app/home.js"></script>

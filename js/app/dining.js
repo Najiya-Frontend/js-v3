@@ -430,13 +430,27 @@
 
   function addToCart() {
     if (!detailItem) return;
-    // placeholder (you'll wire real cart later)
-    alert(
-      "Added to cart:\n" +
-      detailItem.name +
-      "\nQuantity: " + detailQuantity +
-      "\nPrice: " + (detailItem.price * detailQuantity).toFixed(2) + " SAR"
-    );
+
+    // Add to cart via CartPage API
+    if (w.CartPage && typeof w.CartPage.addItem === "function") {
+      w.CartPage.addItem({
+        id: detailItem.id,
+        name: detailItem.name,
+        price: detailItem.price,
+        qty: detailQuantity,
+        category_id: categories[focusCategoryIndex].id
+      });
+
+      alert(
+        "✅ Added to cart:\n" +
+        detailItem.name +
+        "\nQuantity: " + detailQuantity +
+        "\nTotal: " + (detailItem.price * detailQuantity).toFixed(2) + " SAR"
+      );
+    } else {
+      alert("Cart system not loaded.");
+    }
+
     hideDetail();
   }
 

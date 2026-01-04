@@ -17,6 +17,7 @@
   var viewHotelInfo = document.getElementById("view-hotelinfo");
   var viewRoomService = document.getElementById("view-roomservice");
   var viewDining = document.getElementById("view-dining");
+  var viewCart = document.getElementById("view-cart");
 
 
   
@@ -480,6 +481,7 @@
   if (viewHotelInfo) viewHotelInfo.className = "tx-view";
   if (viewRoomService) viewRoomService.className = "tx-view";
   if (viewDining) viewDining.className = "tx-view";
+  if (viewCart) viewCart.className = "tx-view";
 
 
     setTopbarTheme(name);
@@ -540,6 +542,24 @@
     }
     return;
   }
+  if (name === "cart") {
+    prevView = currentView || "home";
+    currentView = "cart";
+    if (viewCart) viewCart.className = "tx-view is-active";
+    try {
+      var cartRoute = PAGE_ROUTE_BY_KEY["KEY_CART"] || findByKey("KEY_CART", false);  
+      if (cartRoute && cartRoute.route_bg && viewCart) {
+        setPageBg(viewCart, resolveRouteBgValue(cartRoute.route_bg));
+      }
+      if (window.CartPage && typeof window.CartPage.open === "function") {
+        window.CartPage.open(cartRoute);
+      }
+    } catch (e) {
+      log("Error opening cart: " + (e && e.message ? e.message : e));
+    }
+    return;
+  }
+
     if (name === "weather") {
     prevView = currentView || "home";
     currentView = "weather";
@@ -676,44 +696,44 @@
   setWelcomeFocus(0);
 }
 
-  function extractChannelsDataFromHtml(html) {
-    html = String(html || "");
-    if (!html) return [];
+  // function extractChannelsDataFromHtml(html) {
+  //   html = String(html || "");
+  //   if (!html) return [];
 
-    var channelList = [];
-    var regex = /<li[^>]*class="[^"]*subnav_item[^"]*"[^>]*data-id="([^"]*)"[^>]*data-name="([^"]*)"[^>]*data-channel-number="([^"]*)"[^>]*data-channel-url="([^"]*)"[^>]*>/gi;
-    var match;
+  //   var channelList = [];
+  //   var regex = /<li[^>]*class="[^"]*subnav_item[^"]*"[^>]*data-id="([^"]*)"[^>]*data-name="([^"]*)"[^>]*data-channel-number="([^"]*)"[^>]*data-channel-url="([^"]*)"[^>]*>/gi;
+  //   var match;
     
-    while ((match = regex.exec(html)) !== null) {
-      var id = match[1] || "";
-      var name = match[2] || "";
-      var number = match[3] || "";
-      var url = match[4] || "";
+  //   while ((match = regex.exec(html)) !== null) {
+  //     var id = match[1] || "";
+  //     var name = match[2] || "";
+  //     var number = match[3] || "";
+  //     var url = match[4] || "";
       
-      var liStart = match.index;
-      var liEnd = html.indexOf("</li>", liStart);
-      if (liEnd === -1) liEnd = html.length;
+  //     var liStart = match.index;
+  //     var liEnd = html.indexOf("</li>", liStart);
+  //     if (liEnd === -1) liEnd = html.length;
       
-      var liContent = html.substring(liStart, liEnd);
-      var logoMatch = /<img[^>]+data-src="([^"]*)"/i.exec(liContent);
-      if (!logoMatch) {
-        logoMatch = /<img[^>]+src="([^"]*)"/i.exec(liContent);
-      }
-      var logoUrl = logoMatch ? logoMatch[1] : "";
+  //     var liContent = html.substring(liStart, liEnd);
+  //     var logoMatch = /<img[^>]+data-src="([^"]*)"/i.exec(liContent);
+  //     if (!logoMatch) {
+  //       logoMatch = /<img[^>]+src="([^"]*)"/i.exec(liContent);
+  //     }
+  //     var logoUrl = logoMatch ? logoMatch[1] : "";
 
-      if (id && name && url) {
-        channelList.push({
-          id: id,
-          name: name,
-          number: number,
-          url: url,
-          logo: logoUrl
-        });
-      }
-    }
+  //     if (id && name && url) {
+  //       channelList.push({
+  //         id: id,
+  //         name: name,
+  //         number: number,
+  //         url: url,
+  //         logo: logoUrl
+  //       });
+  //     }
+  //   }
 
-    return channelList;
-  }
+  //   return channelList;
+  // }
 
   function forceWelcomeOnBoot() {
     var h = String(window.location.hash || "");
@@ -782,6 +802,10 @@
     showView("dining");
     return;
   }
+    if (tileId === "tile-cart") {
+    showView("cart");
+    return;
+  }
 
 
 
@@ -819,6 +843,18 @@
       return;
       }
       if (currentView === "hotelinfo") {
+        showView(prevView || "home");
+        return;
+      }
+      if (currentView === "roomservice") {
+        showView(prevView || "home");
+        return;
+      } 
+      if (currentView === "dining") {
+        showView(prevView || "home");
+        return;
+      } 
+      if (currentView === "cart") {
         showView(prevView || "home");
         return;
       }
@@ -992,6 +1028,18 @@
     if (currentView === "hotelinfo") {
       if (window.HotelInfoPage && typeof window.HotelInfoPage.handleKeyDown === "function") {
         if (window.HotelInfoPage.handleKeyDown(e)) { e.preventDefault(); return; }
+      }
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+      if (k === OK) { e.preventDefault(); return; }
+      return;
+    }
+        if (currentView === "cart") {
+      if (window.CartPage && typeof window.CartPage.handleKeyDown === "function") {
+        if (window.CartPage.handleKeyDown(e)) { e.preventDefault(); return; }
       }
       if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
         e.preventDefault();

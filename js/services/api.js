@@ -190,8 +190,103 @@ function stripHtmlTags(html) {
   html = html.replace(/&quot;/g, '"');
   return html;
 }
+// ===============cart.js api=================
+function createTicket(params, cb) {
+    params = params || {};
 
+    var p = {
+      then: function (ok, bad) {
+        createTicket(params, function (err, data) {
+          if (err) { if (bad) bad(err); return; }
+          if (ok) ok(data);
+        });
+        return p;
+      }
+    };
 
+    ensureDevice(function (err, base) {
+      if (err) { cb && cb(err, null); return; }
+
+      // base has guest_id/hotel_id even if room_number is UI-derived
+      var di = safeGetDeviceInfo() || base || {};
+
+      var body = {
+        guest_id: Number(params.guest_id || di.guest_id || 0),
+        hotel_id: Number(params.hotel_id || di.hotel_id || 0),
+
+        room_number: String(params.room_number || ""),
+        service_key: String(params.service_key || ""),
+        topic_id: String(params.topic_id || ""),
+        ticket_name: String(params.ticket_name || ""),
+        description: String(params.description || ""),
+
+        // optional compatibility (some installs use these)
+        guest_room: String(params.room_number || ""),
+        ticket_description: String(params.description || "")
+      };
+
+      if (!body.guest_id || !body.hotel_id) {
+        cb && cb({ message: "Device not bound (guest_id/hotel_id missing)." }, null);
+        return;
+      }
+      if (!body.room_number) {
+        cb && cb({ message: "Missing room_number." }, null);
+        return;
+      }
+
+      xhrJSON("POST", HOST + "/rest-api/api/v2/rest/create_ticket/", body, function (err2, res) {
+        if (err2) { cb && cb(err2, null); return; }
+        cb && cb(null, res);
+      });
+    });
+
+    return p;
+  }
+
+  function createOrder(params, cb) {
+    params = params || {};
+
+    var p = {
+      then: function (ok, bad) {
+        createOrder(params, function (err, data) {
+          if (err) { if (bad) bad(err); return; }
+          if (ok) ok(data);
+        });
+        return p;
+      }
+    };
+
+    ensureDevice(function (err, base) {
+      if (err) { cb && cb(err, null); return; }
+
+      var di = safeGetDeviceInfo() || base || {};
+
+      var body = {
+        app_id: String(params.app_id || di.app_id || "2"),
+        hotel_id: Number(params.hotel_id || di.hotel_id || 1),
+        guest_id: Number(params.guest_id || di.guest_id || 0),
+        restaurant_id: Number(params.restaurant_id || 1),
+        payment_type_id: Number(params.payment_type_id || 1),
+
+        order_location: String(params.order_location || "In-Room"),
+        order_note: String(params.order_note || ""),
+        order_total: Number(params.order_total || 0),
+        order_items: params.order_items || []
+      };
+
+      if (!body.order_items.length) {
+        cb && cb({ message: "No order items provided." }, null);
+        return;
+      }
+
+      xhrJSON("POST", HOST + "/rest-api/api/v2/rest/order/", body, function (err2, res) {
+        if (err2) { cb && cb(err2, null); return; }
+        cb && cb(null, res);
+      });
+    });
+
+    return p;
+  }
 
   function getAppDataNormalized(cb) {
     var p = {
@@ -333,6 +428,7 @@ function stripHtmlTags(html) {
     rewriteAssetUrl: function (url) { return rewriteAssetUrl(url); },
     stripHtmlTags: function (html) { return stripHtmlTags(html); },
     createTicket: function (p) { return createTicket(p, function () {}); },
+    createOrder: function (p) { return createOrder(p, function () {}); },
 
     liveClient: { subscribe: function () {} }
   };
