@@ -1,4 +1,4 @@
-// js/app/cart.js — Cart page module (ES5 / Tizen 4 safe)
+// js/app/cart.js — Cart page module (ES5 / Tizen 4 safe) - FIXED ORDER PLACEMENT
 (function (w) {
   "use strict";
   if (w.CartPage) return;
@@ -14,7 +14,7 @@
   var focusItemIndex = 0;
   var focusQtyBtnIndex = 0; // 0=minus, 1=plus for focused row
 
-  var cartItems = []; // [{id, name, price, qty, category_id}]
+  var cartItems = []; // [{id, name, price, qty, category_id, restaurant_id}]
 
   // ---------- HELPERS ----------
   function qs(id) { return document.getElementById(id); }
@@ -30,19 +30,56 @@
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
+  // ===== Toast helper (ES5 / TV safe) =====
+function tenxToast(msg, ms, kind) {
+  ms = (ms == null) ? 2500 : Number(ms);
+  kind = String(kind || "info");
 
-  function ensureDom() {
-    if (viewEl) return;
+  try {
+    if (!document || !document.body) return;
 
-    viewEl = qs("view-cart");
-    if (!viewEl) return;
+    var el = document.getElementById("tenx-toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "tenx-toast";
+      document.body.appendChild(el);
+    }
 
-    bgEl = viewEl.querySelector(".cart-bg");
-    pageTitleEl = qs("cart-page-title");
-    tableBodyEl = qs("cart-table-body");
-    totalAmountEl = qs("cart-total-amount");
+    // clear old timers
+    if (tenxToast._t1) { clearTimeout(tenxToast._t1); tenxToast._t1 = null; }
+    if (tenxToast._t2) { clearTimeout(tenxToast._t2); tenxToast._t2 = null; }
+
+    // set text + class
+    el.textContent = String(msg == null ? "" : msg);
+
+    el.className = "is-show is-" + kind;
+
+    // hide later
+    tenxToast._t1 = setTimeout(function () {
+      el.className = el.className.replace(/\bis-show\b/g, "");
+    }, Math.max(800, ms));
+
+    // cleanup type class after fade
+    tenxToast._t2 = setTimeout(function () {
+      el.className = "";
+      el.textContent = "";
+    }, Math.max(900, ms + 250));
+  } catch (e) {}
+}
+  
+
+function ensureDom() {
+  if (viewEl) return;
+
+  viewEl = qs("view-cart");
+  if (!viewEl) return;
+
+  bgEl = viewEl.querySelector(".cart-bg");
+  pageTitleEl = qs("cart-page-title");
+  tableBodyEl = qs("cart-table-body");
+  totalAmountEl = qs("cart-total-amount");
     placeOrderBtnEl = qs("cart-place-order-btn");
-    emptyStateEl = qs("cart-empty-state");
+  emptyStateEl = qs("cart-empty-state");
   }
 
   // ---------- CART STORAGE ----------
@@ -110,16 +147,16 @@
     updateTotal();
   }
 
-  function updateTotal() {
-    var total = 0;
-    var i;
-    for (i = 0; i < cartItems.length; i++) {
-      total += cartItems[i].price * cartItems[i].qty;
-    }
+function updateTotal() {
+  var total = 0;
+  var i;
+  for (i = 0; i < cartItems.length; i++) {
+    total += cartItems[i].price * cartItems[i].qty;
+  }
 
-    safeText(totalAmountEl, total.toFixed(2) + " SAR");
+  safeText(totalAmountEl, total.toFixed(2) + " SAR");
 
-    if (placeOrderBtnEl) {
+  if (placeOrderBtnEl) {
       placeOrderBtnEl.disabled = (cartItems.length === 0);
     }
   }
@@ -146,7 +183,7 @@
     if (focusArea === "placeorder") {
       if (placeOrderBtnEl) placeOrderBtnEl.className += " is-focused";
       return;
-    }
+}
 
     // Focus on table row
     if (focusArea === "table" && cartItems.length) {
@@ -193,48 +230,124 @@
       return;
     }
 
+    // Disable button during order placement
+    if (placeOrderBtnEl) {
+      placeOrderBtnEl.disabled = true;
+      placeOrderBtnEl.textContent = "Placing Order...";
+    }
+
     var orderItems = [];
     var orderTotal = 0;
     var i, item;
+    var restaurantId = 0;
 
     for (i = 0; i < cartItems.length; i++) {
       item = cartItems[i];
+      
+      // Build order item according to backend API format
       orderItems.push({
-        item_id: item.id,
-        item_category_id: item.category_id || 0,
-        item_qty: item.qty,
-        item_price: item.price,
-        item_name: item.name
+        item_id: Number(item.id),
+        item_category_id: Number(item.category_id || 0),
+        item_qty: Number(item.qty),
+        item_price: Number(item.price),
+        item_name: String(item.name)
       });
+      
       orderTotal += item.price * item.qty;
+      
+      // Get restaurant_id from first item (all items should be from same restaurant)
+      if (i === 0 && item.restaurant_id) {
+        restaurantId = Number(item.restaurant_id);
+      }
     }
 
+    // Build payload
     var payload = {
       order_items: orderItems,
       order_total: orderTotal,
       order_note: "",
-      order_location: "In-Room"
+      order_location: "In-Room",
+      payment_type_id: 1
     };
 
-    // Get restaurant_id from session or config
+    // Try to get device info from session
+    var deviceInfo = null;
     try {
       var cached = sessionStorage.getItem("DEVICE_INFO");
       if (cached) {
-        var info = JSON.parse(cached);
-        payload.restaurant_id = info.restaurant_id || 1;
-        payload.hotel_id = info.hotel_id || 1;
-        payload.guest_id = info.guest_id || 0;
-        payload.app_id = info.app_id || 2;
+        deviceInfo = JSON.parse(cached);
       }
     } catch (e) {}
 
-    w.TenxApi.createOrder(payload).then(function (res) {
-      alert("✅ Order placed successfully!\n\nOrder ID: " + (res && res.order_id ? res.order_id : "N/A"));
+    // Add device-specific data if available
+    if (deviceInfo) {
+      payload.hotel_id = deviceInfo.hotel_id || 1;
+      payload.guest_id = deviceInfo.guest_id || 0;
+      payload.app_id = deviceInfo.app_id || 2;
+    }
+
+    // Add restaurant_id
+    if (restaurantId) {
+      payload.restaurant_id = restaurantId;
+    } else {
+      // Fallback: try to get from first cart item or default to 1
+      payload.restaurant_id = 1;
+    }
+
+    console.log("Placing order with payload:", JSON.stringify(payload, null, 2));
+
+    // Place the order
+    w.TenxApi.createOrder(payload).then(
+      function (res) {
+        // Success
+        console.log("Order response:", res);
+        
+        var orderId = "";
+        if (res && res.data && res.data.order_id) {
+          orderId = res.data.order_id;
+        } else if (res && res.order_id) {
+          orderId = res.order_id;
+        }
+
+        alert(
+          "✅ Order placed successfully!\n\n" +
+          "Order ID: " + (orderId || "N/A") + "\n" +
+          "Total: " + orderTotal.toFixed(2) + " SAR"
+        );
+
+      // Clear cart
       clearCart();
       renderTable();
-    }, function (err) {
-      alert("❌ Order failed\n\n" + JSON.stringify(err || {}, null, 2));
-    });
+
+        // Re-enable button
+      if (placeOrderBtnEl) {
+          placeOrderBtnEl.disabled = false;
+        placeOrderBtnEl.textContent = "Place Order";
+      }
+      },
+      function (err) {
+        // Error
+        console.error("Order error:", err);
+        
+        var errorMsg = "❌ Order failed\n\n";
+        
+        if (err && err.message) {
+          errorMsg += err.message;
+        } else if (typeof err === "string") {
+          errorMsg += err;
+        } else {
+          errorMsg += JSON.stringify(err || {}, null, 2);
+        }
+
+        alert(errorMsg);
+        
+        // Re-enable button
+        if (placeOrderBtnEl) {
+          placeOrderBtnEl.disabled = false;
+          placeOrderBtnEl.textContent = "Place Order";
+        }
+      }
+    );
   }
 
   // ---------- NAVIGATION ----------
@@ -386,7 +499,8 @@
           name: item.name,
           price: item.price,
           qty: item.qty || 1,
-          category_id: item.category_id || 0
+          category_id: item.category_id || 0,
+          restaurant_id: item.restaurant_id || 0 // Store restaurant_id
         });
       }
 

@@ -59,6 +59,8 @@
       .replace(/'/g, "&#039;");
   }
 
+
+
   // ✅ API moved out: use TenxApi helpers (fallback safe)
   function apiAssetUrl(url) {
     try {
@@ -441,14 +443,20 @@
         category_id: categories[focusCategoryIndex].id
       });
 
-      alert(
-        "✅ Added to cart:\n" +
+      if (w.tenxToast) {
+  w.tenxToast(
+        "Added to cart\n" +
         detailItem.name +
-        "\nQuantity: " + detailQuantity +
-        "\nTotal: " + (detailItem.price * detailQuantity).toFixed(2) + " SAR"
-      );
+        "\nQty: " + detailQuantity +
+        "  •  Total: " + (detailItem.price * detailQuantity).toFixed(2) + " SAR",
+        3000,
+        "success"
+        );}
+
     } else {
-      alert("Cart system not loaded.");
+      if (w.tenxToast) {
+        w.tenxToast("Cart system not loaded.", 3000, "error");
+      }
     }
 
     hideDetail();

@@ -5,7 +5,7 @@
   if (w.TenxApi && typeof w.TenxApi.ensureDevice === "function") return;
 
   // Put your SERVER IP here (rest-api host). Your PC IP (192.168.10.3) is NOT used.
-  var STATIC_BACKEND_ORIGIN = "http://192.168.10.60";
+  var STATIC_BACKEND_ORIGIN = "http://192.168.1.50";
  // change to https://... if your rest-api is https
 
   var ZERO_MAC = "00:00:00:00:00:00";
@@ -14,19 +14,14 @@
   function safeGetSS(k) { try { return w.sessionStorage.getItem(k); } catch (e2) { return null; } }
   function safeSetSS(k, v) { try { w.sessionStorage.setItem(k, v); } catch (e3) {} }
 
-  function detectHost() {
-    var override = safeGetLS("API_ORIGIN");
-    if (override) return String(override).replace(/\/+$/, "");
+function detectHost() {
+  var override = safeGetLS("API_ORIGIN");
+  if (override) return String(override).replace(/\/+$/, "");
 
-    try {
-      if (w.location && w.location.protocol && w.location.host &&
-          (w.location.protocol.indexOf("http") === 0)) {
-        return (w.location.protocol + "//" + w.location.host).replace(/\/+$/, "");
-      }
-    } catch (e) {}
+  // ✅ ALWAYS use the REST API host by default (NOT the UI host)
+  return String(STATIC_BACKEND_ORIGIN).replace(/\/+$/, "");
+}
 
-    return String(STATIC_BACKEND_ORIGIN).replace(/\/+$/, "");
-  }
 
   var HOST = detectHost();
 
@@ -62,22 +57,59 @@
     return hex2(b1) + ":" + hex2(b2) + ":" + hex2(b3) + ":" + hex2(b4) + ":" + hex2(b5) + ":" + hex2(b6);
   }
 
-  function xhrJSON(method, url, body, cb) {
-    var xhr = new XMLHttpRequest();
-    xhr.open(method, url, true);
-    xhr.setRequestHeader("Accept", "application/json");
-    if (method === "POST") xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState !== 4) return;
+function xhrJSON(method, url, body, cb) {
+  var xhr = new XMLHttpRequest();
+  try { seedPhpSessionFromStorage(); } catch (e0) {}
 
-      var ok = (xhr.status >= 200 && xhr.status < 300);
-      var data = null;
-      try { data = JSON.parse(xhr.responseText || "{}"); } catch (e) { data = null; }
+  xhr.open(method, url, true);
+  try { xhr.withCredentials = true; } catch (e1) {}
 
-      cb(ok ? null : (data || xhr.responseText || ("HTTP " + xhr.status)), data);
-    };
-    xhr.send(body ? JSON.stringify(body) : null);
-  }
+  xhr.setRequestHeader("Accept", "application/json");
+  if (method === "POST") xhr.setRequestHeader("Content-Type", "application/json");
+
+  xhr.timeout = 15000;
+
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState !== 4) return;
+
+    var raw = xhr.responseText || "";
+    var ct = "";
+    try { ct = String(xhr.getResponseHeader("content-type") || "").toLowerCase(); } catch (eCt) {}
+
+    // ✅ detect HTML error pages even with 200
+    var trimmed = raw.replace(/^\uFEFF/, "").replace(/^\s+/, "");
+    var looksHtml = trimmed.charAt(0) === "<" || ct.indexOf("text/html") >= 0;
+
+    // ✅ ALWAYS log so we see backend errors
+    try { console.log("[xhrJSON]", method, url, "->", xhr.status, (looksHtml ? "[HTML]" : ""), raw); } catch (e2) {}
+
+    // treat HTML as error (even if 200)
+    if (looksHtml) {
+      cb({
+        status: xhr.status,
+        url: url,
+        raw: raw,
+        contentType: ct,
+        message: "Expected JSON but got HTML (backend PHP error page)."
+      }, null);
+      return;
+    }
+
+    var data = null;
+    try { data = JSON.parse(trimmed || "{}"); } catch (e) { data = null; }
+
+    if (xhr.status >= 200 && xhr.status < 300) cb(null, data);
+    else cb({ status: xhr.status, url: url, raw: raw, data: data }, data);
+  };
+
+  xhr.ontimeout = function () { cb({ status: 0, url: url, raw: "TIMEOUT" }, null); };
+  xhr.onerror   = function () { cb({ status: 0, url: url, raw: "NETWORK_ERROR" }, null); };
+
+  xhr.send(body ? JSON.stringify(body) : null);
+}
+
+
+
 
   function getDeviceIdentity() {
     var ua = "";
@@ -135,6 +167,47 @@
       done(null, save);
     });
   }
+  function makeThenable(startFn) {
+  var state = 0; // 0=pending, 1=ok, 2=fail
+  var value = null;
+  var handlers = [];
+
+  function flush() {
+    var i, h;
+    for (i = 0; i < handlers.length; i++) {
+      h = handlers[i];
+      try {
+        if (state === 1 && h.ok) h.ok(value);
+        if (state === 2 && h.bad) h.bad(value);
+      } catch (e) {}
+    }
+    handlers = [];
+  }
+
+  function resolve(v) {
+    if (state) return;
+    state = 1; value = v;
+    flush();
+  }
+
+  function reject(e) {
+    if (state) return;
+    state = 2; value = e;
+    flush();
+  }
+
+  // start immediately but keep result for later .then()
+  try { startFn(resolve, reject); } catch (ex) { reject(ex); }
+
+  return {
+    then: function (ok, bad) {
+      if (state === 1) { try { ok && ok(value); } catch (e1) {} }
+      else if (state === 2) { try { bad && bad(value); } catch (e2) {} }
+      else handlers.push({ ok: ok, bad: bad });
+      return this;
+    }
+  };
+}
 
   function ensureDevice(cb) {
     var p = {
@@ -177,6 +250,17 @@
 
     return p;
   }
+  function seedPhpSessionFromStorage() {
+  try {
+    if (typeof document === "undefined") return;
+    var sid = safeGetSS("SESSION_ID") || "";
+    sid = String(sid).trim();
+    if (sid && document.cookie.indexOf("PHPSESSID=") < 0) {
+      document.cookie = "PHPSESSID=" + sid + "; path=/";
+    }
+  } catch (e) {}
+}
+
   // ===============Dining.js api=================
 function stripHtmlTags(html) {
   html = String(html || "");
@@ -242,51 +326,127 @@ function createTicket(params, cb) {
 
     return p;
   }
+  // ✅ OLD-UI parity: sanitize items + keep required fields
+function sanitizeOrderItems(items, fallbackRestaurantId) {
+  var arr = Array.isArray(items) ? items : [];
+  var out = [];
+  var i;
 
-  function createOrder(params, cb) {
-    params = params || {};
+  for (i = 0; i < arr.length; i++) {
+    var it = arr[i] || {};
 
-    var p = {
-      then: function (ok, bad) {
-        createOrder(params, function (err, data) {
-          if (err) { if (bad) bad(err); return; }
-          if (ok) ok(data);
-        });
-        return p;
-      }
+    var item_id = Number(it.item_id != null ? it.item_id : it.id);
+    var item_qty = Number(it.item_qty != null ? it.item_qty :
+                  (it.qty != null ? it.qty : it.order_item_qty));
+    var item_price = Number(it.item_price != null ? it.item_price : it.price);
+
+    var item_category_id = Number(it.item_category_id || it.category_id || 0);
+    var item_name = String(it.item_name != null ? it.item_name : (it.name || "Item"));
+
+    // ✅ restaurant per item (old UI sends this)
+    var item_restaurant_id = Number(
+      it.item_restaurant_id != null ? it.item_restaurant_id :
+      (it.restaurant_id != null ? it.restaurant_id : (fallbackRestaurantId || 0))
+    );
+
+    if (!item_id || !item_qty) continue;
+    if (!isFinite(item_price)) item_price = 0;
+
+    out.push({
+      item_id: item_id,
+      item_name: item_name,
+      item_qty: item_qty,
+      item_price: item_price,
+      item_category_id: item_category_id,
+      item_restaurant_id: item_restaurant_id,
+      item_total: (item_price * item_qty),
+      item_src: String(it.item_src || it.item_cover || it.cover || it.image || "")
+    });
+  }
+
+  return out;
+}
+
+function createOrder(params, cb) {
+  params = params || {};
+
+  var p = {
+    then: function (ok, bad) {
+      createOrder(params, function (err, data) {
+        if (err) { if (bad) bad(err); return; }
+        if (ok) ok(data);
+      });
+      return p;
+    }
+  };
+
+  ensureDevice(function (err, base) {
+    if (err) { cb && cb(err, null); return; }
+
+    var di = safeGetDeviceInfo() || base || {};
+    var itemsIn = params.order_items || [];
+
+    // ✅ restaurant_id: infer like old UI (do NOT default blindly to 1)
+    var restaurantId = Number(params.restaurant_id || 0);
+
+    if (!restaurantId && itemsIn && itemsIn.length) {
+      var first = itemsIn[0] || {};
+      restaurantId = Number(first.restaurant_id || first.item_restaurant_id || 0);
+    }
+
+    if (!restaurantId) {
+      try { restaurantId = Number(localStorage.getItem("fnb_last_restaurant_id") || 0); } catch (e0) {}
+    }
+
+    var cleanItems = sanitizeOrderItems(itemsIn, restaurantId);
+
+    // ✅ compute total if missing/0
+    var total = Number(params.order_total || 0);
+    if (!total) {
+      var s = 0, i;
+      for (i = 0; i < cleanItems.length; i++) s += Number(cleanItems[i].item_total || 0);
+      total = s;
+    }
+
+    var body = {
+      app_id: String(params.app_id || di.app_id || "2"),
+      hotel_id: Number(params.hotel_id || di.hotel_id || 1),
+      guest_id: Number(params.guest_id || di.guest_id || 0),
+
+      restaurant_id: Number(restaurantId || 0),
+      payment_type_id: Number(params.payment_type_id || 1),
+
+      order_location: String(params.order_location || "In-Room"),
+      order_note: String(params.order_note || ""),
+      order_total: Number(total || 0),
+
+      // ✅ OLD UI style order_items
+      order_items: cleanItems
     };
 
-    ensureDevice(function (err, base) {
-      if (err) { cb && cb(err, null); return; }
+    if (!body.restaurant_id) {
+      cb && cb({ message: "Missing restaurant_id (cannot place order)." }, null);
+      return;
+    }
+    if (!body.order_items.length) {
+      cb && cb({ message: "No valid order items (item_id/qty missing)." }, null);
+      return;
+    }
 
-      var di = safeGetDeviceInfo() || base || {};
+    // ✅ store last restaurant id
+    try { localStorage.setItem("fnb_last_restaurant_id", String(body.restaurant_id)); } catch (e1) {}
 
-      var body = {
-        app_id: String(params.app_id || di.app_id || "2"),
-        hotel_id: Number(params.hotel_id || di.hotel_id || 1),
-        guest_id: Number(params.guest_id || di.guest_id || 0),
-        restaurant_id: Number(params.restaurant_id || 1),
-        payment_type_id: Number(params.payment_type_id || 1),
+    xhrJSON("POST", HOST + "/rest-api/api/v2/rest/order/", body, function (err2, res) {
+    if (err2) { cb && cb(err2, null); return; }
+    if (!res) { cb && cb({ message: "Empty/invalid JSON from order API." }, null); return; }
+    cb && cb(null, res);
+  });
 
-        order_location: String(params.order_location || "In-Room"),
-        order_note: String(params.order_note || ""),
-        order_total: Number(params.order_total || 0),
-        order_items: params.order_items || []
-      };
+  });
 
-      if (!body.order_items.length) {
-        cb && cb({ message: "No order items provided." }, null);
-        return;
-      }
+  return p;
+}
 
-      xhrJSON("POST", HOST + "/rest-api/api/v2/rest/order/", body, function (err2, res) {
-        if (err2) { cb && cb(err2, null); return; }
-        cb && cb(null, res);
-      });
-    });
-
-    return p;
-  }
 
   function getAppDataNormalized(cb) {
     var p = {
@@ -364,57 +524,7 @@ function createTicket(params, cb) {
     return url.replace(/^https?:\/\/[^\/]+/i, HOST);
   }
 
-  function createTicket(params, cb) {
-    params = params || {};
 
-    var p = {
-      then: function (ok, bad) {
-        createTicket(params, function (err, data) {
-          if (err) { if (bad) bad(err); return; }
-          if (ok) ok(data);
-        });
-        return p;
-      }
-    };
-
-    ensureDevice(function (err, base) {
-      if (err) { cb && cb(err, null); return; }
-
-      // base has guest_id/hotel_id even if room_number is UI-derived
-      var di = safeGetDeviceInfo() || base || {};
-
-      var body = {
-        guest_id: Number(params.guest_id || di.guest_id || 0),
-        hotel_id: Number(params.hotel_id || di.hotel_id || 0),
-
-        room_number: String(params.room_number || ""),
-        service_key: String(params.service_key || ""),
-        topic_id: String(params.topic_id || ""),
-        ticket_name: String(params.ticket_name || ""),
-        description: String(params.description || ""),
-
-        // optional compatibility (some installs use these)
-        guest_room: String(params.room_number || ""),
-        ticket_description: String(params.description || "")
-      };
-
-      if (!body.guest_id || !body.hotel_id) {
-        cb && cb({ message: "Device not bound (guest_id/hotel_id missing)." }, null);
-        return;
-      }
-      if (!body.room_number) {
-        cb && cb({ message: "Missing room_number." }, null);
-        return;
-      }
-
-      xhrJSON("POST", HOST + "/rest-api/api/v2/rest/create_ticket/", body, function (err2, res) {
-        if (err2) { cb && cb(err2, null); return; }
-        cb && cb(null, res);
-      });
-    });
-
-    return p;
-  }
 
     w.TenxApi = {
     HOST: HOST,
@@ -427,8 +537,10 @@ function createTicket(params, cb) {
     getDeviceInfo: function () { return safeGetDeviceInfo(); },
     rewriteAssetUrl: function (url) { return rewriteAssetUrl(url); },
     stripHtmlTags: function (html) { return stripHtmlTags(html); },
-    createTicket: function (p) { return createTicket(p, function () {}); },
-    createOrder: function (p) { return createOrder(p, function () {}); },
+    createOrder: function (p) { return createOrder(p); },
+    createTicket: function (p) { return createTicket(p); },
+
+
 
     liveClient: { subscribe: function () {} }
   };

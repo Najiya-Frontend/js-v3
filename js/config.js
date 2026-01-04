@@ -19,13 +19,13 @@
       origin = w.location.protocol + "//" + w.location.host;
     }
   } catch (e2) {}
-  if (!origin) origin = "http://192.168.10.60";
+  if (!origin) origin = "http://192.168.1.50";
 
   // Set defaults only if missing
   if (!lsGet("API_ORIGIN")) lsSet("API_ORIGIN", origin);
 
   // These should match what your admin portal expects
-  if (!lsGet("APP_ID"))   lsSet("APP_ID", "7");
+  if (!lsGet("APP_ID"))   lsSet("APP_ID", "2");
   if (!lsGet("HOTEL_ID")) lsSet("HOTEL_ID", "1");
 
   // Optional: if you want to force room/guest during testing

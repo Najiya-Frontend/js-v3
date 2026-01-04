@@ -15,6 +15,36 @@ html, body{
   font-family:'Poppins', sans-serif;
 }
 
+#tenx-toast{
+  position: fixed;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 22px;
+  font-weight: 700;
+  background: rgba(0,0,0,.78);
+  color: #fff;
+  z-index: 999999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+  max-width: 80vw;
+  text-align: center;
+  white-space: pre-line; /* ✅ so your \n works */
+}
+#tenx-toast.is-show{ opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+#tenx-toast.is-success{ background: rgba(16,130,72,.92); }
+#tenx-toast.is-warn{ background: rgba(190,120,10,.92); }
+#tenx-toast.is-error{ background: rgba(180,0,0,.92); }
+#tenx-toast.is-info{ background: rgba(0,0,0,.78); }
+
+
+/* =========================================================================
+   GLOBAL STYLES
+   ========================================================================= */
 *{ box-sizing:border-box; }
 
 /* Fixed 1920×1080 stage (scaled to screen by JS) */
