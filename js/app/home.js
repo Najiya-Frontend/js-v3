@@ -18,6 +18,7 @@
   var viewRoomService = document.getElementById("view-roomservice");
   var viewDining = document.getElementById("view-dining");
   var viewCart = document.getElementById("view-cart");
+  var viewBill = document.getElementById("view-bill");
 
 
   
@@ -468,6 +469,17 @@
         window.DiningPage.close();
       }
     }
+    if (currentView === "cart" && name !== "cart") {
+      if (window.CartPage && typeof window.CartPage.close === "function") {
+        window.CartPage.close();
+      }
+    }
+
+    if (currentView === "bill" && name !== "bill") {
+      if (window.BillPage && typeof window.BillPage.close === "function") {
+        window.BillPage.close();
+      }
+    }
 
     // ===== ALWAYS reset all view classes first (THIS fixes your overlay bug) =====
   if (viewWelcome) viewWelcome.className = "tx-view";
@@ -482,6 +494,7 @@
   if (viewRoomService) viewRoomService.className = "tx-view";
   if (viewDining) viewDining.className = "tx-view";
   if (viewCart) viewCart.className = "tx-view";
+  if (viewBill) viewBill.className = "tx-view";
 
 
     setTopbarTheme(name);
@@ -543,22 +556,46 @@
     return;
   }
   if (name === "cart") {
-    prevView = currentView || "home";
-    currentView = "cart";
-    if (viewCart) viewCart.className = "tx-view is-active";
-    try {
-      var cartRoute = PAGE_ROUTE_BY_KEY["KEY_CART"] || findByKey("KEY_CART", false);  
-      if (cartRoute && cartRoute.route_bg && viewCart) {
-        setPageBg(viewCart, resolveRouteBgValue(cartRoute.route_bg));
-      }
-      if (window.CartPage && typeof window.CartPage.open === "function") {
-        window.CartPage.open(cartRoute);
-      }
-    } catch (e) {
-      log("Error opening cart: " + (e && e.message ? e.message : e));
+  prevView = currentView || "home";
+  currentView = "cart";
+  if (viewCart) viewCart.className = "tx-view is-active";
+
+  try {
+    var cartRoute = PAGE_ROUTE_BY_KEY["KEY_CART"] || findByKey("KEY_CART", false);
+    
+    if (cartRoute && cartRoute.route_bg && viewCart) {
+      setPageBg(viewCart, resolveRouteBgValue(cartRoute.route_bg));
     }
-    return;
+
+    if (window.CartPage && typeof window.CartPage.open === "function") {
+      window.CartPage.open(cartRoute);
+    }
+  } catch (e) {
+    log("Error opening cart: " + (e && e.message ? e.message : e));
   }
+  return;
+}
+
+if (name === "bill") {
+  prevView = currentView || "home";
+  currentView = "bill";
+  if (viewBill) viewBill.className = "tx-view is-active";
+
+  try {
+    var billRoute = PAGE_ROUTE_BY_KEY["KEY_VIEW_BILL"] || findByKey("KEY_VIEW_BILL", false);
+    
+    if (billRoute && billRoute.route_bg && viewBill) {
+      setPageBg(viewBill, resolveRouteBgValue(billRoute.route_bg));
+    }
+
+    if (window.BillPage && typeof window.BillPage.open === "function") {
+      window.BillPage.open(billRoute);
+    }
+  } catch (e) {
+    log("Error opening bill: " + (e && e.message ? e.message : e));
+  }
+  return;
+}
 
     if (name === "weather") {
     prevView = currentView || "home";
@@ -802,11 +839,15 @@
     showView("dining");
     return;
   }
-    if (tileId === "tile-cart") {
+  if (tileId === "tile-cart") {
     showView("cart");
     return;
   }
 
+  if (tileId === "tile-viewbill") {
+    showView("bill");
+    return;
+  }
 
 
     if (rt) {
@@ -1000,7 +1041,16 @@
     }
     
 
-    if (k === OK) { e.preventDefault(); onOk(); return; }
+    // OK should only trigger tile actions when you're on HOME or WELCOME
+    if (k === OK) {
+      if (currentView === "home" || currentView === "welcome") {
+        e.preventDefault();
+        onOk();
+        return;
+      }
+      // otherwise: let page modules (CartPage, DiningPage, etc) handle OK
+    }
+
 
     if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
       e.preventDefault();
@@ -1037,19 +1087,35 @@
       if (k === OK) { e.preventDefault(); return; }
       return;
     }
-        if (currentView === "cart") {
-      if (window.CartPage && typeof window.CartPage.handleKeyDown === "function") {
-        if (window.CartPage.handleKeyDown(e)) { e.preventDefault(); return; }
+    if (currentView === "cart") {
+  if (window.CartPage && typeof window.CartPage.handleKeyDown === "function") {
+    if (window.CartPage.handleKeyDown(e)) { e.preventDefault(); return; }
       }
+      
       if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
         e.preventDefault();
         showView(prevView || "home");
         return;
       }
-      if (k === OK) { e.preventDefault(); return; }
+      
+
       return;
     }
 
+    if (currentView === "bill") {
+      if (window.BillPage && typeof window.BillPage.handleKeyDown === "function") {
+        if (window.BillPage.handleKeyDown(e)) { e.preventDefault(); return; }
+      }
+      
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+      
+      if (k === OK) { e.preventDefault(); return; }
+      return;
+    }
 
     if (currentView === "welcome") {
       if (k === DOWN) { if (welcomeFocusIndex === 0) setWelcomeFocus(1); return; }

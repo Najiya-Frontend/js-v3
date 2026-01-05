@@ -1,4 +1,4 @@
-// js/app/cart.js — Cart page module (ES5 / Tizen 4 safe) - FIXED ORDER PLACEMENT
+// js/app/cart.js — Cart page module with FNB layout (ES5 / Tizen 4 safe)
 (function (w) {
   "use strict";
   if (w.CartPage) return;
@@ -7,6 +7,7 @@
   var viewEl, bgEl;
   var pageTitleEl, tableBodyEl, totalAmountEl, placeOrderBtnEl;
   var emptyStateEl;
+  var summaryItemsEl, summaryDiscountEl, summaryTotalEl;
 
   // ---------- STATE ----------
   var active = false;
@@ -30,56 +31,55 @@
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
-  // ===== Toast helper (ES5 / TV safe) =====
-function tenxToast(msg, ms, kind) {
-  ms = (ms == null) ? 2500 : Number(ms);
-  kind = String(kind || "info");
 
-  try {
-    if (!document || !document.body) return;
+  function tenxToast(msg, ms, kind) {
+    ms = (ms == null) ? 2500 : Number(ms);
+    kind = String(kind || "info");
 
-    var el = document.getElementById("tenx-toast");
-    if (!el) {
-      el = document.createElement("div");
-      el.id = "tenx-toast";
-      document.body.appendChild(el);
-    }
+    try {
+      if (!document || !document.body) return;
 
-    // clear old timers
-    if (tenxToast._t1) { clearTimeout(tenxToast._t1); tenxToast._t1 = null; }
-    if (tenxToast._t2) { clearTimeout(tenxToast._t2); tenxToast._t2 = null; }
+      var el = document.getElementById("tenx-toast");
+      if (!el) {
+        el = document.createElement("div");
+        el.id = "tenx-toast";
+        document.body.appendChild(el);
+      }
 
-    // set text + class
-    el.textContent = String(msg == null ? "" : msg);
+      if (tenxToast._t1) { clearTimeout(tenxToast._t1); tenxToast._t1 = null; }
+      if (tenxToast._t2) { clearTimeout(tenxToast._t2); tenxToast._t2 = null; }
 
-    el.className = "is-show is-" + kind;
+      el.textContent = String(msg == null ? "" : msg);
+      el.className = "is-show is-" + kind;
 
-    // hide later
-    tenxToast._t1 = setTimeout(function () {
-      el.className = el.className.replace(/\bis-show\b/g, "");
-    }, Math.max(800, ms));
+      tenxToast._t1 = setTimeout(function () {
+        el.className = el.className.replace(/\bis-show\b/g, "");
+      }, Math.max(800, ms));
 
-    // cleanup type class after fade
-    tenxToast._t2 = setTimeout(function () {
-      el.className = "";
-      el.textContent = "";
-    }, Math.max(900, ms + 250));
-  } catch (e) {}
-}
-  
+      tenxToast._t2 = setTimeout(function () {
+        el.className = "";
+        el.textContent = "";
+      }, Math.max(900, ms + 250));
+    } catch (e) {}
+  }
 
-function ensureDom() {
-  if (viewEl) return;
+  function ensureDom() {
+    if (viewEl) return;
 
-  viewEl = qs("view-cart");
-  if (!viewEl) return;
+    viewEl = qs("view-cart");
+    if (!viewEl) return;
 
-  bgEl = viewEl.querySelector(".cart-bg");
-  pageTitleEl = qs("cart-page-title");
-  tableBodyEl = qs("cart-table-body");
-  totalAmountEl = qs("cart-total-amount");
+    bgEl = viewEl.querySelector(".fnb-bg");
+    pageTitleEl = qs("cart-page-title");
+    tableBodyEl = qs("cart-table-body");
+    totalAmountEl = qs("cart-total-amount");
     placeOrderBtnEl = qs("cart-place-order-btn");
-  emptyStateEl = qs("cart-empty-state");
+    emptyStateEl = qs("cart-empty-state");
+    
+    
+    summaryItemsEl = qs("cart-summary-items");
+    summaryDiscountEl = qs("cart-summary-discount");
+    summaryTotalEl = qs("cart-summary-total");
   }
 
   // ---------- CART STORAGE ----------
@@ -114,8 +114,17 @@ function ensureDom() {
       tableBodyEl.innerHTML = "";
       if (emptyStateEl) emptyStateEl.style.display = "block";
       updateTotal();
+      updateSummary();
+
+      // ✅ clear focus visuals when list is empty
+      focusArea = "placeorder";
+      focusItemIndex = 0;
+      focusQtyBtnIndex = 0;
+      applyFocus();
+
       return;
     }
+
 
     if (emptyStateEl) emptyStateEl.style.display = "none";
 
@@ -126,14 +135,14 @@ function ensureDom() {
       item = cartItems[i];
       itemTotal = (item.price * item.qty).toFixed(2);
 
-      html += '<tr class="cart-table-row" data-index="' + i + '">';
+      html += '<tr class="fnb-table-row" data-index="' + i + '">';
       html += '<td>' + escapeHtml(item.name) + '</td>';
       
       html += '<td>';
-      html += '<div class="cart-qty-controls">';
-      html += '<div class="cart-qty-btn" data-action="minus" data-index="' + i + '">−</div>';
-      html += '<div class="cart-qty-value">' + item.qty + '</div>';
-      html += '<div class="cart-qty-btn" data-action="plus" data-index="' + i + '">+</div>';
+      html += '<div class="fnb-qty-controls">';
+      html += '<div class="fnb-qty-btn" data-action="minus" data-index="' + i + '">−</div>';
+      html += '<div class="fnb-qty-value">' + item.qty + '</div>';
+      html += '<div class="fnb-qty-btn" data-action="plus" data-index="' + i + '">+</div>';
       html += '</div>';
       html += '</td>';
 
@@ -145,55 +154,76 @@ function ensureDom() {
     tableBodyEl.innerHTML = html;
     applyFocus();
     updateTotal();
+    updateSummary();
   }
 
-function updateTotal() {
-  var total = 0;
-  var i;
-  for (i = 0; i < cartItems.length; i++) {
-    total += cartItems[i].price * cartItems[i].qty;
-  }
+  function updateTotal() {
+    var total = 0;
+    var i;
+    for (i = 0; i < cartItems.length; i++) {
+      total += cartItems[i].price * cartItems[i].qty;
+    }
 
-  safeText(totalAmountEl, total.toFixed(2) + " SAR");
+    safeText(totalAmountEl, total.toFixed(2) + " SAR");
 
-  if (placeOrderBtnEl) {
+    if (placeOrderBtnEl) {
       placeOrderBtnEl.disabled = (cartItems.length === 0);
     }
+  }
+
+  function updateSummary() {
+    var total = 0;
+    var i;
+    for (i = 0; i < cartItems.length; i++) {
+      total += cartItems[i].price * cartItems[i].qty;
+    }
+
+    safeText(summaryItemsEl, "x" + cartItems.length);
+    safeText(summaryDiscountEl, "-");
+    safeText(summaryTotalEl, total.toFixed(2) + " SAR");
   }
 
   function applyFocus() {
     if (!tableBodyEl) return;
 
     // Clear all focus
-    var allRows = tableBodyEl.querySelectorAll(".cart-table-row");
-    var allBtns = tableBodyEl.querySelectorAll(".cart-qty-btn");
+    var allRows = tableBodyEl.querySelectorAll(".fnb-table-row");
+    var allBtns = tableBodyEl.querySelectorAll(".fnb-qty-btn");
     var i;
 
     for (i = 0; i < allRows.length; i++) {
-      allRows[i].className = "cart-table-row";
+      allRows[i].className = "fnb-table-row";
     }
     for (i = 0; i < allBtns.length; i++) {
       allBtns[i].className = allBtns[i].className.replace(/\bis-focused\b/g, "");
     }
 
     if (placeOrderBtnEl) {
-      placeOrderBtnEl.className = placeOrderBtnEl.className.replace(/\bis-focused\b/g, "");
+      placeOrderBtnEl.className = "fnb-place-order-btn";
     }
 
+    // DEBUG logging
+    try {
+      console.log("[CartPage applyFocus] Area:", focusArea, "ItemIndex:", focusItemIndex);
+    } catch (e) {}
+
     if (focusArea === "placeorder") {
-      if (placeOrderBtnEl) placeOrderBtnEl.className += " is-focused";
+      if (placeOrderBtnEl) {
+        placeOrderBtnEl.className = "fnb-place-order-btn is-focused";
+        try { console.log("[CartPage] Place Order button now has focus!"); } catch (e) {}
+      }
       return;
-}
+    }
 
     // Focus on table row
     if (focusArea === "table" && cartItems.length) {
       focusItemIndex = clamp(focusItemIndex, 0, cartItems.length - 1);
 
       var row = allRows[focusItemIndex];
-      if (row) row.className = "cart-table-row is-focused";
+      if (row) row.className = "fnb-table-row is-focused";
 
       // Focus on qty button within that row
-      var btns = tableBodyEl.querySelectorAll('tr[data-index="' + focusItemIndex + '"] .cart-qty-btn');
+      var btns = tableBodyEl.querySelectorAll('tr[data-index="' + focusItemIndex + '"] .fnb-qty-btn');
       if (btns && btns.length > focusQtyBtnIndex) {
         btns[focusQtyBtnIndex].className += " is-focused";
       }
@@ -218,138 +248,85 @@ function updateTotal() {
   }
 
   // ---------- PLACE ORDER ----------
-  function placeOrder() {
-    if (!cartItems.length) {
-      alert("Cart is empty!");
-      return;
-    }
+function placeOrder() {
+  if (!cartItems.length) {
+    tenxToast("Cart is empty!", 2500, "warn");
+    return;
+  }
 
-    // Check if TenxApi and createOrder exist
-    if (!w.TenxApi || typeof w.TenxApi.createOrder !== "function") {
-      alert("TenxApi.createOrder not found. Cannot place order.");
-      return;
-    }
+  if (!w.TenxApi || typeof w.TenxApi.createOrder !== "function") {
+    tenxToast("API not ready. Please try again.", 3000, "error");
+    return;
+  }
 
-    // Disable button during order placement
-    if (placeOrderBtnEl) {
-      placeOrderBtnEl.disabled = true;
-      placeOrderBtnEl.textContent = "Placing Order...";
-    }
+  if (placeOrderBtnEl) {
+    placeOrderBtnEl.disabled = true;
+    placeOrderBtnEl.textContent = "Placing Order...";
+  }
 
-    var orderItems = [];
-    var orderTotal = 0;
-    var i, item;
-    var restaurantId = 0;
-
-    for (i = 0; i < cartItems.length; i++) {
-      item = cartItems[i];
-      
-      // Build order item according to backend API format
-      orderItems.push({
-        item_id: Number(item.id),
-        item_category_id: Number(item.category_id || 0),
-        item_qty: Number(item.qty),
-        item_price: Number(item.price),
-        item_name: String(item.name)
-      });
-      
-      orderTotal += item.price * item.qty;
-      
-      // Get restaurant_id from first item (all items should be from same restaurant)
-      if (i === 0 && item.restaurant_id) {
-        restaurantId = Number(item.restaurant_id);
-      }
-    }
-
-    // Build payload
-    var payload = {
-      order_items: orderItems,
-      order_total: orderTotal,
-      order_note: "",
-      order_location: "In-Room",
-      payment_type_id: 1
+  // Prepare clean items exactly like the official createOrder expects
+  var orderItems = cartItems.map(function(item) {
+    return {
+      id: Number(item.id),
+      name: String(item.name),
+      price: Number(item.price),
+      qty: Number(item.qty),
+      category_id: Number(item.category_id || 0),
+      restaurant_id: Number(item.restaurant_id || 0)
     };
+  });
 
-    // Try to get device info from session
-    var deviceInfo = null;
-    try {
-      var cached = sessionStorage.getItem("DEVICE_INFO");
-      if (cached) {
-        deviceInfo = JSON.parse(cached);
-      }
-    } catch (e) {}
+  var total = cartItems.reduce(function(sum, item) {
+    return sum + (item.price * item.qty);
+  }, 0);
 
-    // Add device-specific data if available
-    if (deviceInfo) {
-      payload.hotel_id = deviceInfo.hotel_id || 1;
-      payload.guest_id = deviceInfo.guest_id || 0;
-      payload.app_id = deviceInfo.app_id || 2;
-    }
+  // Let TenxApi.createOrder handle ALL logic: device binding, restaurant_id, room_id, etc.
+  w.TenxApi.createOrder({
+    order_items: orderItems,
+    order_total: total,
+    order_location: "In-Room",
+    payment_type_id: 1,
+    order_note: ""
+  }).then(
+    function (res) {
+      console.log("[CartPage] Order success:", res);
 
-    // Add restaurant_id
-    if (restaurantId) {
-      payload.restaurant_id = restaurantId;
-    } else {
-      // Fallback: try to get from first cart item or default to 1
-      payload.restaurant_id = 1;
-    }
+      var orderId = "";
+      if (res && res.data && res.data.order_id) orderId = res.data.order_id;
+      else if (res && res.order_id) orderId = res.order_id;
 
-    console.log("Placing order with payload:", JSON.stringify(payload, null, 2));
+      tenxToast(
+        "Order placed successfully!\n\n" +
+        "Order ID: " + (orderId || "N/A") + "\n" +
+        "Total: " + total.toFixed(2) + " SAR",
+        4000,
+        "success"
+      );
 
-    // Place the order
-    w.TenxApi.createOrder(payload).then(
-      function (res) {
-        // Success
-        console.log("Order response:", res);
-        
-        var orderId = "";
-        if (res && res.data && res.data.order_id) {
-          orderId = res.data.order_id;
-        } else if (res && res.order_id) {
-          orderId = res.order_id;
-        }
-
-        alert(
-          "✅ Order placed successfully!\n\n" +
-          "Order ID: " + (orderId || "N/A") + "\n" +
-          "Total: " + orderTotal.toFixed(2) + " SAR"
-        );
-
-      // Clear cart
       clearCart();
       renderTable();
 
-        // Re-enable button
       if (placeOrderBtnEl) {
-          placeOrderBtnEl.disabled = false;
+        placeOrderBtnEl.disabled = false;
         placeOrderBtnEl.textContent = "Place Order";
       }
-      },
-      function (err) {
-        // Error
-        console.error("Order error:", err);
-        
-        var errorMsg = "❌ Order failed\n\n";
-        
-        if (err && err.message) {
-          errorMsg += err.message;
-        } else if (typeof err === "string") {
-          errorMsg += err;
-        } else {
-          errorMsg += JSON.stringify(err || {}, null, 2);
-        }
+    },
+    function (err) {
+      console.error("[CartPage] Order failed:", err);
 
-        alert(errorMsg);
-        
-        // Re-enable button
-        if (placeOrderBtnEl) {
-          placeOrderBtnEl.disabled = false;
-          placeOrderBtnEl.textContent = "Place Order";
-        }
+      var msg = "Order failed\n\n";
+      if (err && err.message) msg += err.message;
+      else msg += "Please try again.";
+
+      tenxToast(msg, 4000, "error");
+
+      if (placeOrderBtnEl) {
+        placeOrderBtnEl.disabled = false;
+        placeOrderBtnEl.textContent = "Place Order";
       }
-    );
-  }
-
+    }
+  );
+}
   // ---------- NAVIGATION ----------
   function moveTableUD(delta) {
     if (!cartItems.length) return;
@@ -357,9 +334,18 @@ function updateTotal() {
     var newIndex = focusItemIndex + delta;
     newIndex = clamp(newIndex, 0, cartItems.length - 1);
 
-    if (newIndex === focusItemIndex) return;
+    if (newIndex === focusItemIndex) {
+      // At edge, try to move to place order button
+      if (delta > 0 && focusItemIndex === cartItems.length - 1) {
+        focusArea = "placeorder";
+        applyFocus();
+        return;
+      }
+      return;
+    }
+    
     focusItemIndex = newIndex;
-    focusQtyBtnIndex = 0; // reset to minus button
+    focusQtyBtnIndex = 0;
     applyFocus();
   }
 
@@ -367,7 +353,7 @@ function updateTotal() {
     if (!cartItems.length) return;
 
     focusQtyBtnIndex += delta;
-    focusQtyBtnIndex = clamp(focusQtyBtnIndex, 0, 1); // 0=minus, 1=plus
+    focusQtyBtnIndex = clamp(focusQtyBtnIndex, 0, 1);
     applyFocus();
   }
 
@@ -420,7 +406,19 @@ function updateTotal() {
     var LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40, OK = 13;
     var BACK1 = 8, BACK2 = 461, BACK3 = 10009, BACK4 = 27;
 
+    // DEBUG logging (remove after testing)
+    try {
+      console.log("[CartPage] Key:", k, "FocusArea:", focusArea, "ItemIndex:", focusItemIndex, "QtyBtnIndex:", focusQtyBtnIndex);
+    } catch (e) {}
+
+    // CRITICAL: Handle Place Order button FIRST
     if (focusArea === "placeorder") {
+
+      // ✅ allow BACK to bubble (so Home handles it)
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        return false;
+      }
+
       if (k === UP) {
         if (cartItems.length) {
           focusArea = "table";
@@ -430,11 +428,19 @@ function updateTotal() {
         }
         return true;
       }
+
       if (k === OK) {
         placeOrder();
+        // ✅ Ensure focus remains in placeorder after clicking OK
+        focusArea = "placeorder";   // <-- Fix focusArea reset
+        applyFocus();   // <-- Reapply focus after button press
         return true;
       }
+
+      // swallow other keys while on button
+      return true;
     }
+
 
     if (focusArea === "table") {
       if (k === UP) {
@@ -442,23 +448,22 @@ function updateTotal() {
         moveTableUD(-1);
         return true;
       }
+      
       if (k === DOWN) {
-        if (focusItemIndex === cartItems.length - 1) {
-          focusArea = "placeorder";
-          applyFocus();
-        } else {
-          moveTableUD(1);
-        }
+        moveTableUD(1);
         return true;
       }
+      
       if (k === LEFT) {
         moveTableLR(-1);
         return true;
       }
+      
       if (k === RIGHT) {
         moveTableLR(1);
         return true;
       }
+      
       if (k === OK) {
         var delta = (focusQtyBtnIndex === 0) ? -1 : 1;
         changeQty(focusItemIndex, delta);
@@ -467,7 +472,7 @@ function updateTotal() {
     }
 
     if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
-      return false; // let home.js handle
+      return false;
     }
 
     return false;
@@ -480,7 +485,6 @@ function updateTotal() {
     handleKeyDown: handleKeyDown,
     isActive: function () { return active; },
     
-    // Public methods for external use
     addItem: function (item) {
       var existing = null;
       var i;
@@ -500,7 +504,7 @@ function updateTotal() {
           price: item.price,
           qty: item.qty || 1,
           category_id: item.category_id || 0,
-          restaurant_id: item.restaurant_id || 0 // Store restaurant_id
+          restaurant_id: item.restaurant_id || 0
         });
       }
 

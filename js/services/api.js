@@ -154,14 +154,18 @@ function xhrJSON(method, url, body, cb) {
 
       var d = (res && res.data) ? res.data : (res || {});
       var save = {
-        app_id: Number(d.app_id || payload.app_id),
-        hotel_id: Number(d.hotel_id || payload.hotel_id),
-        device_id: Number(d.device_id || 0),
-        guest_id: Number(d.guest_id || payload.guest_id || 0),
-        room_id: Number(d.room_id || payload.room_id || 0),
+        app_id: Number(d.app_id != null ? d.app_id : payload.app_id),
+        hotel_id: Number(d.hotel_id != null ? d.hotel_id : payload.hotel_id),
+        device_id: Number(d.device_id != null ? d.device_id : 0),
+
+        // ✅ IMPORTANT: keep 0 if backend returns 0
+        guest_id: Number(d.guest_id != null ? d.guest_id : (payload.guest_id || 0)),
+        room_id:  Number(d.room_id  != null ? d.room_id  : (payload.room_id  || 0)),
+
         device_mac: String(d.device_mac || payload.device_mac || ""),
         language_id: Number(payload.language_id || 1)
       };
+
 
       safeSetSS("DEVICE_INFO", JSON.stringify(save));
       done(null, save);
@@ -386,7 +390,7 @@ function createOrder(params, cb) {
     var di = safeGetDeviceInfo() || base || {};
     var itemsIn = params.order_items || [];
 
-    // ✅ restaurant_id: infer like old UI (do NOT default blindly to 1)
+    // Restaurant ID logic
     var restaurantId = Number(params.restaurant_id || 0);
 
     if (!restaurantId && itemsIn && itemsIn.length) {
@@ -394,13 +398,14 @@ function createOrder(params, cb) {
       restaurantId = Number(first.restaurant_id || first.item_restaurant_id || 0);
     }
 
+    // Fallback to localStorage if no restaurantId found
     if (!restaurantId) {
       try { restaurantId = Number(localStorage.getItem("fnb_last_restaurant_id") || 0); } catch (e0) {}
     }
 
     var cleanItems = sanitizeOrderItems(itemsIn, restaurantId);
 
-    // ✅ compute total if missing/0
+    // Calculate total if not provided
     var total = Number(params.order_total || 0);
     if (!total) {
       var s = 0, i;
@@ -409,20 +414,30 @@ function createOrder(params, cb) {
     }
 
     var body = {
-      app_id: String(params.app_id || di.app_id || "2"),
-      hotel_id: Number(params.hotel_id || di.hotel_id || 1),
-      guest_id: Number(params.guest_id || di.guest_id || 0),
+        app_id: String(params.app_id || di.app_id || "2"),
+        hotel_id: Number(params.hotel_id || di.hotel_id || 1),
 
-      restaurant_id: Number(restaurantId || 0),
-      payment_type_id: Number(params.payment_type_id || 1),
+        //include device_id if backend can resolve guest/room from device
+        device_id: Number(di.device_id || base.device_id || 0),
 
-      order_location: String(params.order_location || "In-Room"),
-      order_note: String(params.order_note || ""),
-      order_total: Number(total || 0),
+        //guest/room ids (what backend needs)
+        guest_id: Number(params.guest_id || di.guest_id || 0),
+        room_id:  Number(params.room_id  || di.room_id  || 0),
 
-      // ✅ OLD UI style order_items
-      order_items: cleanItems
-    };
+        //also send room number as fallback (some installs use this)
+        room_number: String(
+          params.room_number ||
+          (function(){ try { return localStorage.getItem("ROOM_NO") || ""; } catch(e0) { return ""; } })()
+        ),
+
+        restaurant_id: Number(restaurantId || 0),
+        payment_type_id: Number(params.payment_type_id || 1),
+        order_location: String(params.order_location || "In-Room"),
+        order_note: String(params.order_note || ""),
+        order_total: Number(total || 0),
+        order_items: cleanItems
+      };
+
 
     if (!body.restaurant_id) {
       cb && cb({ message: "Missing restaurant_id (cannot place order)." }, null);
@@ -433,18 +448,67 @@ function createOrder(params, cb) {
       return;
     }
 
-    // ✅ store last restaurant id
+    // Store last restaurant id for convenience
     try { localStorage.setItem("fnb_last_restaurant_id", String(body.restaurant_id)); } catch (e1) {}
 
+
+try {
+  console.log("[createOrder] device_info:", safeGetDeviceInfo());
+  console.log("[createOrder] payload:", body);
+} catch (e) {}
+
+
+    // Call the backend API
     xhrJSON("POST", HOST + "/rest-api/api/v2/rest/order/", body, function (err2, res) {
-    if (err2) { cb && cb(err2, null); return; }
-    if (!res) { cb && cb({ message: "Empty/invalid JSON from order API." }, null); return; }
-    cb && cb(null, res);
-  });
+      if (err2) {
+        // If we got an HTML response (PHP error page), catch it and notify user
+        if (err2 && err2.message === "Expected JSON but got HTML") {
+          cb && cb({ message: "Order failed: Server error (please try again)." }, null);
+        } else {
+          cb && cb(err2, null); // Handle other errors
+        }
+        return;
+      }
+      
+      // If the response is valid
+      if (!res) { 
+        cb && cb({ message: "Empty/invalid JSON from order API." }, null); 
+        return; 
+      }
+
+      cb && cb(null, res); // Successfully placed order
+    });
 
   });
 
   return p;
+}
+
+function syncIdsFromAppJson(app) {
+  if (!app) return;
+
+  // app_json MAY include these ids depending on backend
+  var gid = Number(app.guest_id || app.guestId || 0);
+  var rid = Number(app.room_id  || app.roomId  || app.guest_room_id || 0);
+
+  // also keep room number for order APIs that accept room_number
+  var roomNo = String(app.room_number || app.room_no || "");
+
+  // persist to localStorage (so next ensureDevice payload can use it)
+  try { if (gid) w.localStorage.setItem("GUEST_ID", String(gid)); } catch (e1) {}
+  try { if (rid) w.localStorage.setItem("ROOM_ID",  String(rid)); } catch (e2) {}
+  try { if (roomNo) w.localStorage.setItem("ROOM_NO", roomNo); } catch (e3) {}
+
+  // also patch session DEVICE_INFO if it exists
+  var di = safeGetDeviceInfo() || null;
+  if (di) {
+    var changed = false;
+    if (gid && Number(di.guest_id || 0) !== gid) { di.guest_id = gid; changed = true; }
+    if (rid && Number(di.room_id  || 0) !== rid) { di.room_id  = rid; changed = true; }
+    if (changed) {
+      try { safeSetSS("DEVICE_INFO", JSON.stringify(di)); } catch (e4) {}
+    }
+  }
 }
 
 
@@ -470,9 +534,16 @@ function createOrder(params, cb) {
         "&room_id=" + encodeURIComponent(base.room_id);
 
       xhrJSON("GET", HOST + "/rest-api/api/v2/rest/app_json/?" + q, null, function (err2, res) {
-        if (err2) { cb && cb(err2, null); return; }
-        cb && cb(null, (res && res.data) ? res.data : res);
-      });
+  if (err2) { cb && cb(err2, null); return; }
+
+  var app = (res && res.data) ? res.data : res;
+
+  // ✅ IMPORTANT: save guest_id/room_id/room_no for createOrder
+  try { syncIdsFromAppJson(app); } catch (e0) {}
+
+  cb && cb(null, app);
+});
+
     });
 
     return p;

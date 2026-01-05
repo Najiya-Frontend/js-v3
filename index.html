@@ -21,7 +21,8 @@
   <link rel="stylesheet" href="css/fdx.css">
   <link rel="stylesheet" href="css/roomservice.css">
   <link rel="stylesheet" href="css/dining.css">
-  <link rel="stylesheet" href="css/cart.css">
+  <!-- <link rel="stylesheet" href="css/cart.css"> -->
+  <link rel="stylesheet" href="css/fnb.css">
   
 
 
@@ -469,75 +470,200 @@
   </footer>
 </section>
 
-<!-- ===================== CART VIEW ===================== -->
+<!-- ===================== CART VIEW (FNB LAYOUT) ===================== -->
 <section id="view-cart" class="tx-view">
   <!-- Background layers -->
-  <div class="cart-bg"></div>
-  <div class="cart-vignette"></div>
-  <div class="cart-dim"></div>
+  <div class="fnb-bg"></div>
+  <div class="fnb-vignette"></div>
+  <div class="fnb-dim"></div>
 
   <!-- Main content -->
-  <div class="cart-main">
-    <div id="cart-page-title" class="cart-page-title">Cart</div>
+  <div class="fnb-main">
+    <!-- LEFT: Table -->
+    <div class="fnb-left">
+      <div id="cart-page-title" class="fnb-page-title">Cart</div>
 
-    <div class="cart-table-container">
-      <table class="cart-table">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Qty</th>
-            <th>Price</th>
-            <th style="text-align:right;">Total</th>
-          </tr>
-        </thead>
+      <div class="fnb-table-container">
+        <table class="fnb-table">
+          <thead>
+            <tr>
+              <th>Item name</th>
+              <th>Item quantity</th>
+              <th>Item price</th>
+              <th style="text-align:right;">Total price</th>
+            </tr>
+          </thead>
 
-        <tbody id="cart-table-body">
-          <!-- rows injected by cart.js -->
-        </tbody>
-      </table>
+          <tbody id="cart-table-body">
+            <!-- rows injected by cart.js -->
+          </tbody>
+        </table>
 
-      <!-- Empty state (shown when cart is empty) -->
-      <div id="cart-empty-state" class="cart-empty" style="display:none;">
-        <div class="cart-empty-icon">🛒</div>
-        <div class="cart-empty-text">Your cart is empty</div>
-        <div class="cart-empty-subtext">Add items from Dining to place an order</div>
+        <!-- Empty state -->
+        <div id="cart-empty-state" class="fnb-empty" style="display:none;">
+          <div class="fnb-empty-icon">🛒</div>
+          <div class="fnb-empty-text">Your cart is empty</div>
+          <div class="fnb-empty-subtext">Add items from Dining to place an order</div>
+        </div>
+      </div>
+
+      <!-- Footer (total) -->
+      <div class="fnb-footer">
+        <div class="fnb-total-section">
+          <div class="fnb-total-label">Total Amount</div>
+          <div id="cart-total-amount" class="fnb-total-amount">0.00 SAR</div>
+        </div>
       </div>
     </div>
 
-    <!-- Footer (total + place order) -->
-    <div class="cart-footer">
-      <div class="cart-total-section">
-        <div class="cart-total-label">Total</div>
-        <div id="cart-total-amount" class="cart-total-amount">0.00 SAR</div>
+    <!-- RIGHT: Summary -->
+    <div class="fnb-right">
+      <div class="fnb-summary-title">Bill Summary</div>
+      
+      <div class="fnb-summary-card">
+        <div class="fnb-summary-row">
+          <div class="fnb-summary-label">Ordered Items:</div>
+          <div id="cart-summary-items" class="fnb-summary-value">x0</div>
+        </div>
+
+        <div class="fnb-summary-row">
+          <div class="fnb-summary-label">Discount:</div>
+          <div id="cart-summary-discount" class="fnb-summary-value">-</div>
+        </div>
+
+        <div class="fnb-summary-divider"></div>
+
+        <div class="fnb-summary-row fnb-summary-total">
+          <div class="fnb-summary-label">Total Amount:</div>
+          <div id="cart-summary-total" class="fnb-summary-value">0.00 SAR</div>
+        </div>
       </div>
 
-      <button id="cart-place-order-btn" class="cart-place-order-btn" type="button">
+      <button id="cart-place-order-btn" class="fnb-place-order-btn" type="button">
         Place Order
       </button>
     </div>
   </div>
 
   <!-- Bottom legend -->
-  <div class="cart-legend">
-    <div class="cart-legend__group">
-      <div class="cart-legend__item">
-        <span class="cart-legend__icon">⟵</span>
+  <div class="fnb-legend">
+    <div class="fnb-legend__group">
+      <div class="fnb-legend__item">
+        <span class="fnb-legend__icon">⟵</span>
         <span>Back</span>
       </div>
-      <div class="cart-legend__item">
-        <span class="cart-legend__icon">▲▼</span>
+      <div class="fnb-legend__item">
+        <span class="fnb-legend__icon">▲▼</span>
         <span>Move</span>
       </div>
     </div>
 
-    <div class="cart-legend__group">
-      <div class="cart-legend__item">
-        <span class="cart-legend__icon">◀▶</span>
+    <div class="fnb-legend__group">
+      <div class="fnb-legend__item">
+        <span class="fnb-legend__icon">◀▶</span>
         <span>Qty</span>
       </div>
-      <div class="cart-legend__item">
-        <span class="cart-legend__icon">OK</span>
+      <div class="fnb-legend__item">
+        <span class="fnb-legend__icon">OK</span>
         <span>Select</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BILL VIEW (FNB LAYOUT) ===================== -->
+<section id="view-bill" class="tx-view">
+  <!-- Background layers -->
+  <div class="fnb-bg"></div>
+  <div class="fnb-vignette"></div>
+  <div class="fnb-dim"></div>
+
+  <!-- Main content -->
+  <div class="fnb-main">
+    <!-- LEFT: Table -->
+    <div class="fnb-left">
+      <div id="bill-page-title" class="fnb-page-title">Bill invoice for Room No. 101</div>
+
+      <div class="fnb-table-container">
+        <table class="fnb-table">
+          <thead>
+            <tr>
+              <th>Bill Code</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Total</th>
+              <th style="text-align:right;">note</th>
+            </tr>
+          </thead>
+
+          <tbody id="bill-table-body">
+            <!-- rows injected by bill.js -->
+          </tbody>
+        </table>
+
+        <!-- Empty state -->
+        <div id="bill-empty-state" class="fnb-empty" style="display:none;">
+          <div class="fnb-empty-icon">🧾</div>
+          <div class="fnb-empty-text">No bills found</div>
+          <div class="fnb-empty-subtext">Place orders to see your bills here</div>
+        </div>
+      </div>
+
+      <!-- Footer (total) -->
+      <div class="fnb-footer">
+        <div class="fnb-total-section">
+          <div class="fnb-total-label">Total</div>
+          <div id="bill-total-amount" class="fnb-total-amount">0.00 SAR</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Summary -->
+    <div class="fnb-right">
+      <div class="fnb-summary-title">Bill Summary</div>
+      
+      <div class="fnb-summary-card">
+        <div class="fnb-summary-row">
+          <div class="fnb-summary-label">Ordered Services:</div>
+          <div id="bill-summary-items" class="fnb-summary-value">x0</div>
+        </div>
+
+        <div class="fnb-summary-row">
+          <div class="fnb-summary-label">Invoice Total:</div>
+          <div id="bill-summary-invoice" class="fnb-summary-value">0.00 SAR</div>
+        </div>
+
+        <div class="fnb-summary-row">
+          <div class="fnb-summary-label">Paid:</div>
+          <div id="bill-summary-paid" class="fnb-summary-value">0.00 SAR</div>
+        </div>
+
+        <div class="fnb-summary-divider"></div>
+
+        <div class="fnb-summary-row fnb-summary-total">
+          <div class="fnb-summary-label">Balance:</div>
+          <div id="bill-summary-balance" class="fnb-summary-value">0.00 SAR</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom legend -->
+  <div class="fnb-legend">
+    <div class="fnb-legend__group">
+      <div class="fnb-legend__item">
+        <span class="fnb-legend__icon">⟵</span>
+        <span>Back</span>
+      </div>
+      <div class="fnb-legend__item">
+        <span class="fnb-legend__icon">▲▼</span>
+        <span>Navigate</span>
+      </div>
+    </div>
+
+    <div class="fnb-legend__group">
+      <div class="fnb-legend__item">
+        <span>Place Order</span>
       </div>
     </div>
   </div>
@@ -896,6 +1022,7 @@
   <script src="js/app/roomservice.js"></script>
   <script src="js/app/dining.js"></script>
   <script src="js/app/cart.js"></script>
+  <script src="js/app/bill.js"></script>
   
 
   <script src="js/app/home.js"></script>
