@@ -95,123 +95,144 @@
 
        
 
-        <main class="tx-grid">
-          <!-- Row 1 -->
-          <div id="tile-hotelinfo" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="hotelinfo">
-            <div class="tx-tile__shade"></div><div class="tx-tile__label">Hotel Information</div>
-          </div>
+<main class="tx-grid">
+  <!-- Row 1 -->
+  <div id="tile-hotelinfo" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="hotelinfo">
+    <div class="tx-tile__shade"></div><div class="tx-tile__label">Hotel Information</div>
+  </div>
 
-          <div id="tile-roomservice" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="roomservice">
-            <div class="tx-tile__shade"></div><div class="tx-tile__label">Room Service</div>
-          </div>
+  <div id="tile-roomservice" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="roomservice">
+    <div class="tx-tile__shade"></div><div class="tx-tile__label">Room Service</div>
+  </div>
 
-          <!-- Movies: needs BOTH photo bg + center play/icon wrapper -->
-          <div id="tile-movies" class="tx-tile is-photo is-icon tx-focusable" data-focus="home" data-tile="movies">
-            <div class="tx-tile__shade"></div>
-            <div class="tx-tile__iconWrap">
-              <img class="tx-route-icon" alt="" />
-              <div class="tx-tile__centerIcon">▶</div>
-            </div>
-            <div class="tx-tile__label">Movies</div>
-          </div>
+  <!-- Movies: photo bg + center play -->
+  <div id="tile-movies" class="tx-tile is-photo is-icon tx-focusable" data-focus="home" data-tile="movies">
+    <div class="tx-tile__shade"></div>
+    <div class="tx-tile__iconWrap">
+      <img class="tx-route-icon" alt="" />
+      <div class="tx-tile__centerIcon">▶</div>
+    </div>
+    <div class="tx-tile__label">Movies</div>
+  </div>
 
-          <!-- Icon tiles -->
-          <div id="tile-music" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="music">
-            <div class="tx-tile__iconWrap">
-              <img class="tx-route-icon" alt="" />
-              <div class="tx-icon" aria-hidden="true">🎧</div>
-            </div>
-            <div class="tx-tile__label">Music</div>
-          </div>
+  <!-- Right-top icon tiles -->
+  <div id="tile-music" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="music">
+    <div class="tx-tile__iconWrap">
+      <img class="tx-route-icon" alt="" />
+      <div class="tx-icon" aria-hidden="true">🎧</div>
+    </div>
+    <div class="tx-tile__label">Music</div>
+  </div>
 
-          <div id="tile-tv" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="tv">
-            <div class="tx-tile__iconWrap">
-              <img class="tx-route-icon" alt="" />
-              <div class="tx-icon" aria-hidden="true">▭</div>
-            </div>
-            <div class="tx-tile__label">TV</div>
-          </div>
+  <div id="tile-tv" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="tv">
+    <div class="tx-tile__iconWrap">
+      <img class="tx-route-icon" alt="" />
+      <div class="tx-icon" aria-hidden="true">▭</div>
+    </div>
+    <div class="tx-tile__label">TV</div>
+  </div>
 
-          <!-- Row 2 -->
-          <div id="tile-spa" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="spa">
-            <div class="tx-tile__shade"></div><div class="tx-tile__label">Wellness &amp; Spa</div>
-          </div>
+  <!-- Row 2 -->
+  <div id="tile-spa" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="spa">
+    <div class="tx-tile__shade"></div><div class="tx-tile__label">Wellness &amp; Spa</div>
+  </div>
 
-          <div id="tile-restaurants" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="restaurants">
-            <div class="tx-tile__shade"></div><div class="tx-tile__label">Restaurants</div>
-          </div>
+  <div id="tile-restaurants" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="restaurants">
+    <div class="tx-tile__shade"></div><div class="tx-tile__label">Restaurants</div>
+  </div>
 
-          <div id="tile-weather" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="weather">
-            <div class="tx-tile__iconWrap">
-              <img class="tx-route-icon" alt="" />
-              <div class="tx-icon" aria-hidden="true">☁</div>
-            </div>
-            <div class="tx-tile__label"><span id="tile-weather-text">+23 C</span></div>
-          </div>
+  <div id="tile-weather" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="weather">
+    <div class="tx-tile__iconWrap">
+      <img class="tx-route-icon" alt="" />
+      <div class="tx-icon" aria-hidden="true">☁</div>
+    </div>
+    <div class="tx-tile__label"><span id="tile-weather-text">+23 C</span></div>
+  </div>
 
-          <div id="tile-clock" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="clock">
-            <div class="tx-tile__iconWrap">
-              <img class="tx-route-icon" alt="" />
-              <div class="tx-icon" aria-hidden="true">⏰</div>
-            </div>
-            <div class="tx-tile__label">World Clock</div>
-          </div>
+  <div id="tile-clock" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="clock">
+    <div class="tx-tile__iconWrap">
+      <img class="tx-route-icon" alt="" />
+      <div class="tx-icon" aria-hidden="true">⏰</div>
+    </div>
+    <div class="tx-tile__label">World Clock</div>
+  </div>
 
-          <!-- Row 3 -->
-          <div id="tile-dining" class="tx-tile is-iconBig tx-focusable" data-focus="home" data-tile="dining">
-            <div class="tx-tile__iconWrap tx-tile__iconWrap--big">
-              <img class="tx-route-icon tx-route-icon--big" alt="" />
-              <div class="tx-iconBig" aria-hidden="true">🍽</div>
-            </div>
-            <div class="tx-tile__label">In-Room Dining</div>
-            <div class="tx-tile__sub">24 hours</div>
-          </div>
+  <!-- Row 3 -->
+  <div id="tile-dining" class="tx-tile is-iconBig tx-focusable" data-focus="home" data-tile="dining">
+    <div class="tx-tile__iconWrap tx-tile__iconWrap--big">
+      <img class="tx-route-icon tx-route-icon--big" alt="" />
+      <div class="tx-iconBig" aria-hidden="true">🍽</div>
+    </div>
+    <div class="tx-tile__label">In-Room Dining</div>
+    <div class="tx-tile__sub">24 hours</div>
+  </div>
 
-          <div id="tile-discover" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="discover">
-            <div class="tx-tile__shade"></div><div class="tx-tile__label">Discover City</div>
-          </div>
+  <div id="tile-discover" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="discover">
+    <div class="tx-tile__shade"></div><div class="tx-tile__label">Discover City</div>
+  </div>
 
-          <div id="tile-roomcontrol" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="roomcontrol">
-            <div class="tx-tile__iconWrap">
-              <img class="tx-route-icon" alt="" />
-              <div class="tx-icon" aria-hidden="true">🎛</div>
-            </div>
-            <div class="tx-tile__label">Room Control</div>
-          </div>
+  <!-- ✅ NEW: Apps -->
+  <div id="tile-apps" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="apps">
+    <div class="tx-tile__iconWrap">
+      <img class="tx-route-icon" alt="" />
+      <div class="tx-icon" aria-hidden="true">▦</div>
+    </div>
+    <div class="tx-tile__label">Apps</div>
+  </div>
 
-          <div id="tile-cart" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="cart">
-            <div class="tx-tile__iconWrap">
-              <img class="tx-route-icon" alt="" />
-              <div class="tx-icon" aria-hidden="true">👜</div>
-            </div>
-            <div class="tx-tile__label">Cart</div>
-          </div>
+  <div id="tile-cart" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="cart">
+    <div class="tx-tile__iconWrap">
+      <img class="tx-route-icon" alt="" />
+      <div class="tx-icon" aria-hidden="true">👜</div>
+    </div>
+    <div class="tx-tile__label">Cart</div>
+  </div>
 
-          <div id="tile-special" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="special">
-            <div class="tx-tile__shade"></div><div class="tx-tile__label">Special Offers</div>
-          </div>
+  <!-- Special Offers is now WIDE (row 3 only) -->
+  <div id="tile-special" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="special">
+    <div class="tx-tile__shade"></div><div class="tx-tile__label">Special Offers</div>
+  </div>
 
-          <!-- Row 4 -->
-          <div id="tile-prayer" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="prayer">
-            <div class="tx-tile__shade"></div><div class="tx-tile__label">Prayer</div>
-          </div>
+  <!-- Row 4 -->
+  <div id="tile-prayer" class="tx-tile is-photo tx-focusable" data-focus="home" data-tile="prayer">
+    <div class="tx-tile__shade"></div><div class="tx-tile__label">Prayer</div>
+  </div>
 
-          <div id="tile-messages" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="messages">
-            <div class="tx-tile__iconWrap">
-              <img class="tx-route-icon" alt="" />
-              <div class="tx-icon" aria-hidden="true">✉</div>
-            </div>
-            <div class="tx-tile__label">Messages</div>
-          </div>
+  <div id="tile-messages" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="messages">
+    <div class="tx-tile__iconWrap">
+      <img class="tx-route-icon" alt="" />
+      <div class="tx-icon" aria-hidden="true">✉</div>
+    </div>
+    <div class="tx-tile__label">Messages</div>
+  </div>
 
-          <div id="tile-viewbill" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="viewbill">
-            <div class="tx-tile__iconWrap">
-              <img class="tx-route-icon" alt="" />
-              <div class="tx-icon" aria-hidden="true">🧾</div>
-            </div>
-            <div class="tx-tile__label">View Bill</div>
-          </div>
-        </main>
+  <div id="tile-viewbill" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="viewbill">
+    <div class="tx-tile__iconWrap">
+      <img class="tx-route-icon" alt="" />
+      <div class="tx-icon" aria-hidden="true">🧾</div>
+    </div>
+    <div class="tx-tile__label">View Bill</div>
+  </div>
+
+  <!-- Room Control moved to bottom-right area -->
+  <div id="tile-roomcontrol" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="roomcontrol">
+    <div class="tx-tile__iconWrap">
+      <img class="tx-route-icon" alt="" />
+      <div class="tx-icon" aria-hidden="true">🎛</div>
+    </div>
+    <div class="tx-tile__label">Room Control</div>
+  </div>
+
+  <!-- ✅ NEW: Feedback -->
+  <div id="tile-feedback" class="tx-tile is-icon tx-focusable" data-focus="home" data-tile="feedback">
+    <div class="tx-tile__iconWrap">
+      <img class="tx-route-icon" alt="" />
+      <div class="tx-icon" aria-hidden="true">💬</div>
+    </div>
+    <div class="tx-tile__label">Feedback</div>
+  </div>
+</main>
+
       </section>
       <!-- ===================== HOTEL INFORMATION VIEW ===================== -->
 <section id="view-hotelinfo" class="tx-view">

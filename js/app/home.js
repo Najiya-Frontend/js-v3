@@ -384,11 +384,12 @@
 
   var homePos = { r: 0, c: 0 };
   var HOME_NAV = [
-    ["tile-hotelinfo", "tile-roomservice", "tile-movies", "tile-movies", "tile-music", "tile-tv"],
-    ["tile-spa", "tile-restaurants", "tile-movies", "tile-movies", "tile-weather", "tile-clock"],
-    ["tile-dining", "tile-discover", "tile-roomcontrol", "tile-cart", "tile-special", "tile-special"],
-    ["tile-dining", "tile-prayer", "tile-messages", "tile-viewbill", "tile-special", "tile-special"]
-  ];
+  ["tile-hotelinfo", "tile-roomservice", "tile-movies", "tile-movies", "tile-music", "tile-tv"],
+  ["tile-spa", "tile-restaurants", "tile-movies", "tile-movies", "tile-weather", "tile-clock"],
+  ["tile-dining", "tile-discover", "tile-apps", "tile-cart", "tile-special", "tile-special"],
+  ["tile-dining", "tile-prayer", "tile-messages", "tile-viewbill", "tile-roomcontrol", "tile-feedback"]
+];
+
 
 function setHomeFocusById(id) {
   clearFocus();
@@ -1904,11 +1905,14 @@ if (name === "bill") {
     mapTile("tile-music", ["key_music","music"], "Music", false, null);
     mapTile("tile-tv", ["key_tv","tv","tv_channels","television","channels"], "TV", false, null);
     mapTile("tile-weather", ["key_weather","weather","temperature"], "Weather", false, null);
-    mapTile("tile-clock", ["key_world_clock","world_clock","clock"], "Clock", false, null);
+    mapTile("tile-clock", ["key_world_clock","world_clock","clock"], "World Clock", false, null);
     mapTile("tile-roomcontrol", ["key_room_control","room_control","controls","iot"], "Room Control", false, null);
     mapTile("tile-cart", ["key_cart","cart","view_cart","basket"], "Cart", false, null);
     mapTile("tile-messages", ["key_messages","messages","inbox"], "Messages", false, null);
     mapTile("tile-viewbill", ["view bill","bill","folio"], "View Bill", false, null);
+    mapTile("tile-apps", ["key_socialstore","socialstore","apps","app store","store"], "Apps", false, null);
+    mapTile("tile-feedback", ["key_feedback","feedback","guest feedback","review"], "Feedback", false, null);
+
   }
 
   function loadAppData() {

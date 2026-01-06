@@ -349,21 +349,37 @@ html, body{
 }
 
 /* =========================================================================
-   POSITIONS (Derived from Figma sizes)
+   POSITIONS (Derived from NEW Home Figma)
+   Columns:
+     col1 x=0   w=443
+     col2 x=457 w=443
+     col3 x=914 w=220
+     col4 x=1137 w=220
+     col5 x=1371 w=220
+     col6 x=1594 w=220
+   Rows:
+     row1 y=0
+     row2 y=227
+     row3 y=454
+     row4 y=681
    ========================================================================= */
 
 /* ---- Rect tiles (443×218) ---- */
 #tile-hotelinfo   { left: 0px;   top: 0px;   width:443px; height:218px; }
 #tile-roomservice { left: 457px; top: 0px;   width:443px; height:218px; }
+
 #tile-spa         { left: 0px;   top: 227px; width:443px; height:218px; }
 #tile-restaurants { left: 457px; top: 227px; width:443px; height:218px; }
+
 #tile-discover    { left: 457px; top: 454px; width:443px; height:218px; }
 #tile-prayer      { left: 457px; top: 681px; width:443px; height:218px; }
 
-/* ---- Big tiles (443×445) ---- */
+/* ---- Big tiles (443×445) ----
+   Movies spans rows 1–2 (center)
+   Dining spans rows 3–4 (left)
+*/
 #tile-movies      { left: 914px; top: 0px;   width:443px; height:445px; }
 #tile-dining      { left: 0px;   top: 454px; width:443px; height:445px; }
-#tile-special     { left: 1371px;top: 454px; width:443px; height:445px; }
 
 /* ---- Small tiles (220×218) in right-top (music/tv/weather/clock) ---- */
 #tile-music       { left: 1371px; top: 0px;   width:220px; height:218px; }
@@ -371,11 +387,18 @@ html, body{
 #tile-weather     { left: 1371px; top: 227px; width:220px; height:218px; }
 #tile-clock       { left: 1594px; top: 227px; width:220px; height:218px; }
 
-/* ---- Small tiles (220×218) under Movies (RoomControl/Cart/Messages/ViewBill) ---- */
-#tile-roomcontrol { left: 914px;  top: 454px; width:220px; height:218px; }
+/* ---- Row 3 small tiles under Movies (Apps/Cart) ---- */
+#tile-apps        { left: 914px;  top: 454px; width:220px; height:218px; }
 #tile-cart        { left: 1137px; top: 454px; width:220px; height:218px; }
+
+/* ---- Special Offers: WIDE tile (443×218) on Row 3 (spans col5+col6) ---- */
+#tile-special     { left: 1371px; top: 454px; width:443px; height:218px; }
+
+/* ---- Row 4 small tiles (Messages/ViewBill/RoomControl/Feedback) ---- */
 #tile-messages    { left: 914px;  top: 681px; width:220px; height:218px; }
 #tile-viewbill    { left: 1137px; top: 681px; width:220px; height:218px; }
+#tile-roomcontrol { left: 1371px; top: 681px; width:220px; height:218px; }
+#tile-feedback    { left: 1594px; top: 681px; width:220px; height:218px; }
 
 /* Focus ring */
 .tx-focusable.is-focused{
