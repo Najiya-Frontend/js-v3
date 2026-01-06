@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="css/dining.css">
   <!-- <link rel="stylesheet" href="css/cart.css"> -->
   <link rel="stylesheet" href="css/fnb.css">
+  <link rel="stylesheet" href="css/prayer.css">
   
 
 
@@ -387,7 +388,157 @@
     </div>
   </footer>
 </section>
+<!-- ===================== RESTAURANTS VIEW ===================== -->
+<section id="view-restaurants" class="tx-view">
+  <div class="fc-bg"></div>
+  <div class="fc-vignette"></div>
+  <div class="fc-dim"></div>
 
+  <div id="rest-main" class="fc-main">
+    <div class="fc-left">
+      <div id="rest-page-title" class="fc-page-title">Restaurants</div>
+      <div id="rest-submenu" class="fc-submenu"></div>
+    </div>
+
+    <div class="fc-right">
+      <div id="rest-detail" class="fc-detail">
+        <div class="fc-detail-body">
+
+          <div class="fc-media">
+            <div class="fc-main-preview">
+              <img id="rest-main-img" src="" alt="">
+            </div>
+
+            <div class="fc-thumbs-row">
+              <div id="rest-slider-viewport" class="fc-thumbs-viewport">
+                <div id="rest-slider-track" class="fc-thumbs-track"></div>
+              </div>
+
+              <div id="rest-slider-arrow-left" class="fc-slider-arrow fc-slider-arrow--left">◀</div>
+              <div id="rest-slider-arrow-right" class="fc-slider-arrow fc-slider-arrow--right">▶</div>
+            </div>
+          </div>
+
+          <div class="fc-desc-panel">
+            <div id="rest-detail-title" class="fc-detail-title">—</div>
+            <div id="rest-description" class="fc-description fc-description--side"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="fc-legend">
+    <div class="fc-legend__group">
+      <div class="fc-legend__item"><span class="fc-legend__icon">↩</span><span>Back</span></div>
+    </div>
+    <div class="fc-legend__group">
+      <div class="fc-legend__item"><span>OK: View Details</span></div>
+    </div>
+    <div class="fc-legend__group">
+      <div class="fc-legend__item"><span>Restaurants</span></div>
+    </div>
+  </footer>
+</section>
+
+<!-- ===================== DISCOVER CITY VIEW ===================== -->
+<section id="view-discovercity" class="tx-view">
+  <div class="fc-bg"></div>
+  <div class="fc-vignette"></div>
+  <div class="fc-dim"></div>
+
+  <div id="city-main" class="fc-main">
+    <div class="fc-left">
+      <div id="city-page-title" class="fc-page-title">Discover City</div>
+      <div id="city-submenu" class="fc-submenu"></div>
+    </div>
+
+    <div class="fc-right">
+      <div id="city-detail" class="fc-detail">
+        <div class="fc-detail-body">
+
+          <div class="fc-media">
+            <div class="fc-main-preview">
+              <img id="city-main-img" src="" alt="">
+            </div>
+
+            <div class="fc-thumbs-row">
+              <div id="city-slider-viewport" class="fc-thumbs-viewport">
+                <div id="city-slider-track" class="fc-thumbs-track"></div>
+              </div>
+
+              <div id="city-slider-arrow-left" class="fc-slider-arrow fc-slider-arrow--left">◀</div>
+              <div id="city-slider-arrow-right" class="fc-slider-arrow fc-slider-arrow--right">▶</div>
+            </div>
+          </div>
+
+          <div class="fc-desc-panel">
+            <div id="city-detail-title" class="fc-detail-title">—</div>
+            <div id="city-description" class="fc-description fc-description--side"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="fc-legend">
+    <div class="fc-legend__group">
+      <div class="fc-legend__item"><span class="fc-legend__icon">↩</span><span>Back</span></div>
+    </div>
+    <div class="fc-legend__group">
+      <div class="fc-legend__item"><span>OK: View Details</span></div>
+    </div>
+    <div class="fc-legend__group">
+      <div class="fc-legend__item"><span>Discover City</span></div>
+    </div>
+  </footer>
+</section>
+
+<!-- ===================== PRAYER TIME VIEW ===================== -->
+<section id="view-prayer" class="tx-view">
+  <div class="pr-bg"></div>
+  <div class="pr-vignette"></div>
+  <div class="pr-dim"></div>
+
+  <div class="pr-main">
+    <div id="pr-page-title" class="pr-page-title">Prayer Time</div>
+
+    <div id="pr-grid" class="pr-grid">
+      <!-- Prayer cards will be rendered here by prayer.js -->
+    </div>
+  </div>
+
+  <!-- Bottom Legend -->
+  <footer class="pr-legend">
+    <div class="pr-legend__group">
+      <div class="pr-legend__item">
+        <span class="pr-legend__icon">↩</span>
+        <span>Back</span>
+      </div>
+      <div class="pr-legend__item">
+        <span class="pr-legend__icon"> </span>
+        <span> </span>
+      </div>
+    </div>
+
+    <div class="pr-legend__group">
+      <div class="pr-legend__item">
+        <span> </span>
+      </div>
+    </div>
+
+    <div class="pr-legend__group">
+      <div class="pr-legend__item">
+        <span class="pr-legend__key-blue"></span>
+        <span>Change Location</span>
+      </div>
+    </div>
+  </footer>
+</section>
+
+<!-- ===================== END PRAYER TIME VIEW ===================== -->
 <!-- ===================== IN-ROOM DINING VIEW ===================== -->
 <section id="view-dining" class="tx-view">
   <div class="dn-bg"></div>
@@ -1023,6 +1174,9 @@
   <script src="js/app/dining.js"></script>
   <script src="js/app/cart.js"></script>
   <script src="js/app/bill.js"></script>
+  <script src="js/app/restaurants.js"></script>
+  <script src="js/app/discovercity.js"></script>
+  <script src="js/app/prayer.js"></script>
   
 
   <script src="js/app/home.js"></script>

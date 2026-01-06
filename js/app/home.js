@@ -19,6 +19,9 @@
   var viewDining = document.getElementById("view-dining");
   var viewCart = document.getElementById("view-cart");
   var viewBill = document.getElementById("view-bill");
+  var viewRestaurants = document.getElementById("view-restaurants");
+  var viewDiscoverCity = document.getElementById("view-discovercity");
+  var viewPrayer = document.getElementById("view-prayer");
 
 
   
@@ -374,6 +377,10 @@
     var el = welcomeFocusEls[idx];
     if (el) el.className += " is-focused";
   }
+  // ✅ Remember last focused tile on Home (movement) + last selected tile (OK/open)
+  var lastHomeFocusId = "tile-hotelinfo";
+  var lastHomeSelectedId = ""; // set when you press OK to open a page
+
 
   var homePos = { r: 0, c: 0 };
   var HOME_NAV = [
@@ -383,18 +390,24 @@
     ["tile-dining", "tile-prayer", "tile-messages", "tile-viewbill", "tile-special", "tile-special"]
   ];
 
-  function setHomeFocusById(id) {
-    clearFocus();
-    var el = qs(id);
-    if (el) el.className += " is-focused";
+function setHomeFocusById(id) {
+  clearFocus();
+  var el = qs(id);
 
-    var r, c;
-    for (r = 0; r < HOME_NAV.length; r++) {
-      for (c = 0; c < HOME_NAV[r].length; c++) {
-        if (HOME_NAV[r][c] === id) { homePos.r = r; homePos.c = c; return; }
-      }
+  if (el) {
+    el.className += " is-focused";
+    // ✅ track last focused tile (for returning to Home)
+    lastHomeFocusId = id;
+  }
+
+  var r, c;
+  for (r = 0; r < HOME_NAV.length; r++) {
+    for (c = 0; c < HOME_NAV[r].length; c++) {
+      if (HOME_NAV[r][c] === id) { homePos.r = r; homePos.c = c; return; }
     }
   }
+}
+
 
   function moveHome(dr, dc) {
     var r = homePos.r, c = homePos.c;
@@ -480,6 +493,21 @@
         window.BillPage.close();
       }
     }
+    if (currentView === "restaurants" && name !== "restaurants") {  
+      if (window.RestaurantsPage && typeof window.RestaurantsPage.close === "function") {
+        window.RestaurantsPage.close();
+      }
+    }
+    if (currentView === "discovercity" && name !== "discovercity") {  
+      if (window.DiscoverCityPage && typeof window.DiscoverCityPage.close === "function") {
+        window.DiscoverCityPage.close();
+      }
+    }
+    if (currentView === "prayer" && name !== "prayer") {
+      if (window.PrayerPage && typeof window.PrayerPage.close === "function") {
+        window.PrayerPage.close();
+      }
+    }
 
     // ===== ALWAYS reset all view classes first (THIS fixes your overlay bug) =====
   if (viewWelcome) viewWelcome.className = "tx-view";
@@ -495,6 +523,9 @@
   if (viewDining) viewDining.className = "tx-view";
   if (viewCart) viewCart.className = "tx-view";
   if (viewBill) viewBill.className = "tx-view";
+  if (viewRestaurants) viewRestaurants.className = "tx-view";
+  if (viewDiscoverCity) viewDiscoverCity.className = "tx-view";
+  if (viewPrayer) viewPrayer.className = "tx-view";
 
 
     setTopbarTheme(name);
@@ -672,6 +703,65 @@ if (name === "bill") {
     }
     return;
   }
+  if (name === "restaurants") {
+    prevView = currentView || "home";
+    currentView = "restaurants";
+    if (viewRestaurants) viewRestaurants.className = "tx-view is-active";
+
+    try {
+      var resRoute = PAGE_ROUTE_BY_KEY["KEY_RESTAURANTS"] || findByKey("KEY_RESTAURANTS", false);
+
+      if (resRoute && resRoute.route_bg && viewRestaurants) {
+        setPageBg(viewRestaurants, resolveRouteBgValue(resRoute.route_bg));
+      }
+
+      if (window.RestaurantsPage && typeof window.RestaurantsPage.open === "function") {
+        window.RestaurantsPage.open(resRoute);
+      }
+    } catch (e6) {
+      log("Error opening restaurants: " + (e6 && e6.message ? e6.message : e6));
+    }
+    return;
+  }
+  if (name === "discovercity") {
+    prevView = currentView || "home";
+    currentView = "discovercity";
+    if (viewDiscoverCity) viewDiscoverCity.className = "tx-view is-active";
+
+    try {
+      var dcRoute = PAGE_ROUTE_BY_KEY["KEY_ATTRACTIONS"] || findByKey("KEY_ATTRACTIONS", false);
+      if (dcRoute && dcRoute.route_bg && viewDiscoverCity) {
+        setPageBg(viewDiscoverCity, resolveRouteBgValue(dcRoute.route_bg));
+      }
+
+      if (window.DiscoverCityPage && typeof window.DiscoverCityPage.open === "function") {
+        window.DiscoverCityPage.open(dcRoute);
+      }
+    } catch (e7) {
+      log("Error opening discovercity: " + (e7 && e7.message ? e7.message : e7));
+    }
+    return;
+  }
+  if (name === "prayer") {
+  prevView = currentView || "home";
+  currentView = "prayer";
+  if (viewPrayer) viewPrayer.className = "tx-view is-active";
+
+  try {
+    var prayerRoute = PAGE_ROUTE_BY_KEY["KEY_PRAYER_TIME"] || findByKey("KEY_PRAYER_TIME", false);
+
+    if (prayerRoute && prayerRoute.route_bg && viewPrayer) {
+      setPageBg(viewPrayer, resolveRouteBgValue(prayerRoute.route_bg));
+    }
+
+    if (window.PrayerPage && typeof window.PrayerPage.open === "function") {
+      window.PrayerPage.open(prayerRoute);
+    }
+  } catch (e) {
+    log("Error opening prayer: " + (e && e.message ? e.message : e));
+  }
+  return;
+}
   
     if (name === "facilities") {
     prevView = currentView || "home";
@@ -723,7 +813,12 @@ if (name === "bill") {
   if (name === "home") {
     currentView = "home";
     if (viewHome) viewHome.className = "tx-view is-active";
-    setHomeFocusById("tile-hotelinfo");
+
+    // ✅ Restore last selected tile first, otherwise last focused, otherwise default
+    var restoreId = lastHomeSelectedId || lastHomeFocusId || "tile-hotelinfo";
+    if (!qs(restoreId)) restoreId = "tile-hotelinfo";
+    setHomeFocusById(restoreId);
+
     return;
   }
 
@@ -801,6 +896,12 @@ if (name === "bill") {
     if (!focused) return;
 
     var tileId = focused.id;
+    // ✅ Remember the tile that was selected (OK) so Back returns here
+    if (currentView === "home" && tileId) {
+      lastHomeSelectedId = tileId;
+      lastHomeFocusId = tileId;
+    }
+
     var rt = TILE_ROUTE[tileId];
 
     if (tileId === "tile-weather") {
@@ -848,6 +949,18 @@ if (name === "bill") {
     showView("bill");
     return;
   }
+  if (tileId === "tile-restaurants") {
+    showView("restaurants");
+    return;
+  }
+  if (tileId === "tile-discover") {
+    showView("discovercity");
+    return;
+  }
+  if (tileId === "tile-prayer") {
+  showView("prayer");
+  return;
+}
 
 
     if (rt) {
@@ -896,6 +1009,22 @@ if (name === "bill") {
         return;
       } 
       if (currentView === "cart") {
+        showView(prevView || "home");
+        return;
+      }
+      if (currentView === "bill") {
+        showView(prevView || "home");
+        return;
+      }
+      if (currentView === "restaurants") {
+        showView(prevView || "home");
+        return;
+      }
+      if (currentView === "discovercity") {
+        showView(prevView || "home");
+        return;
+      }
+      if (currentView === "prayer") {
         showView(prevView || "home");
         return;
       }
@@ -976,6 +1105,32 @@ if (name === "bill") {
       if (k === OK) { e.preventDefault(); return; }
       return;
     }
+    if (currentView === "restaurants") {
+      if (window.RestaurantsPage && typeof window.RestaurantsPage.handleKeyDown === "function") {
+        if (window.RestaurantsPage.handleKeyDown(e)) { e.preventDefault(); return; }
+      }
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+      if (k === OK) { e.preventDefault(); return; }
+      return;
+    }
+
+    if (currentView === "discovercity") {
+      if (window.DiscoverCityPage && typeof window.DiscoverCityPage.handleKeyDown === "function") {
+        if (window.DiscoverCityPage.handleKeyDown(e)) { e.preventDefault(); return; }
+      }
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+      if (k === OK) { e.preventDefault(); return; }
+      return;
+    }
+
     if (currentView === "dining") {
       if (window.DiningPage && typeof window.DiningPage.handleKeyDown === "function") {
         if (window.DiningPage.handleKeyDown(e)) { e.preventDefault(); return; }
@@ -1105,6 +1260,57 @@ if (name === "bill") {
     if (currentView === "bill") {
       if (window.BillPage && typeof window.BillPage.handleKeyDown === "function") {
         if (window.BillPage.handleKeyDown(e)) { e.preventDefault(); return; }
+      }
+      
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+      
+      if (k === OK) { e.preventDefault(); return; }
+      return;
+    }
+    if (k === 86) {  // V key = Change Location (blue key)
+    e.preventDefault();
+    
+    // For now, just show a toast - you can implement location change later
+    if (currentView === "prayer") {
+      if (w.tenxToast) {
+        w.tenxToast("Change Location feature coming soon!", 2500, "info");
+      }
+      return;
+    }
+    
+    return;
+  }
+
+  // COMPLETE EXAMPLE OF THE V KEY HANDLER SECTION:
+/*
+    if (k === 86) {  // V key = Change Location (blue key)
+      e.preventDefault();
+      
+      // Handle based on current view
+      if (currentView === "prayer") {
+        if (w.tenxToast) {
+          w.tenxToast("Change Location feature coming soon!", 2500, "info");
+        }
+        return;
+      }
+      
+      // You can add more view-specific handlers here
+      // For example, in weather view it might change weather location
+      if (currentView === "weather") {
+        // Handle weather location change
+        return;
+      }
+      
+      return;
+    }
+*/
+    if (currentView === "prayer") {
+      if (window.PrayerPage && typeof window.PrayerPage.handleKeyDown === "function") {
+        if (window.PrayerPage.handleKeyDown(e)) { e.preventDefault(); return; }
       }
       
       if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
@@ -1770,6 +1976,7 @@ if (name === "bill") {
     if (h.indexOf("#/hotelinfo") === 0) { showView("hotelinfo"); return; }
     if (h.indexOf("#/facilities") === 0) { showView("facilities"); return; }
     if (h.indexOf("#/tv") === 0) { showView("tv"); return; }
+    if (h.indexOf("#/prayer") === 0) { showView("prayer"); return; }
 
 
     if (hasSeenWelcome()) showView("home");
