@@ -1,6 +1,8 @@
-/* css/cart.css — Cart page (1920x1080, Tizen 4 safe) */
+/* css/fnb.css — FNB Layout for Cart & Bill (1920x1080, Tizen 4 safe) */
 
-#view-cart {
+/* ===================== SHARED FNB LAYOUT ===================== */
+#view-cart,
+#view-bill {
   position: absolute;
   left: 0;
   top: 0;
@@ -8,12 +10,14 @@
   height: 1080px;
   display: none;
 }
-#view-cart.is-active {
+
+#view-cart.is-active,
+#view-bill.is-active {
   display: block;
 }
 
 /* Background */
-.cart-bg {
+.fnb-bg {
   position: absolute;
   left: 0;
   top: 0;
@@ -24,7 +28,7 @@
   background-position: center;
 }
 
-.cart-vignette {
+.fnb-vignette {
   position: absolute;
   left: 0;
   top: 0;
@@ -38,7 +42,7 @@
   );
 }
 
-.cart-dim {
+.fnb-dim {
   position: absolute;
   left: 0;
   top: 0;
@@ -49,17 +53,19 @@
 }
 
 /* Main Container */
-.cart-main {
+.fnb-main {
   position: absolute;
   left: 90px;
   right: 90px;
   top: 180px;
   bottom: 120px;
   z-index: 2;
+  display: flex;
+  gap: 60px;
 }
 
 /* Page Title */
-.cart-page-title {
+.fnb-page-title {
   font-size: 44px;
   font-weight: 900;
   color: rgba(255, 255, 255, 0.96);
@@ -67,11 +73,17 @@
   text-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
 }
 
+/* ===================== LEFT SECTION (Table) ===================== */
+.fnb-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Table Container */
-.cart-table-container {
+.fnb-table-container {
   position: relative;
-  width: 100%;
-  height: calc(100% - 200px);
+  flex: 1;
   border: 2px solid rgba(255, 255, 255, 0.25);
   border-radius: 18px;
   background: rgba(0, 0, 0, 0.35);
@@ -79,17 +91,17 @@
 }
 
 /* Table */
-.cart-table {
+.fnb-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
 
-.cart-table thead {
+.fnb-table thead {
   background: rgba(0, 0, 0, 0.5);
 }
 
-.cart-table th {
+.fnb-table th {
   padding: 24px 20px;
   text-align: left;
   font-size: 24px;
@@ -98,62 +110,62 @@
   border-bottom: 2px solid rgba(255, 255, 255, 0.15);
 }
 
-.cart-table th:first-child {
+.fnb-table th:first-child {
   padding-left: 40px;
 }
 
-.cart-table th:last-child {
+.fnb-table th:last-child {
   padding-right: 40px;
   text-align: right;
 }
 
-.cart-table tbody {
+.fnb-table tbody {
   background: transparent;
 }
 
-.cart-table-row {
+.fnb-table-row {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   transition: background 0.2s ease;
 }
 
-.cart-table-row:hover {
+.fnb-table-row:hover {
   background: rgba(255, 255, 255, 0.03);
 }
 
-.cart-table-row.is-focused {
+.fnb-table-row.is-focused {
   background: rgba(37, 99, 235, 0.15);
   border-top: 2px solid rgba(37, 99, 235, 0.6);
   border-bottom: 2px solid rgba(37, 99, 235, 0.6);
 }
 
-.cart-table td {
+.fnb-table td {
   padding: 28px 20px;
   font-size: 22px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
 }
 
-.cart-table td:first-child {
+.fnb-table td:first-child {
   padding-left: 40px;
   font-size: 26px;
   font-weight: 700;
 }
 
-.cart-table td:last-child {
+.fnb-table td:last-child {
   padding-right: 40px;
   text-align: right;
   font-size: 24px;
   font-weight: 700;
 }
 
-/* Quantity Controls */
-.cart-qty-controls {
+/* Quantity Controls (Cart only) */
+.fnb-qty-controls {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.cart-qty-btn {
+.fnb-qty-btn {
   width: 48px;
   height: 48px;
   border-radius: 10px;
@@ -169,17 +181,17 @@
   transition: all 0.2s ease;
 }
 
-.cart-qty-btn:hover {
+.fnb-qty-btn:hover {
   border-color: rgba(37, 99, 235, 0.8);
   background: rgba(37, 99, 235, 0.2);
 }
 
-.cart-qty-btn.is-focused {
+.fnb-qty-btn.is-focused {
   border-color: rgba(37, 99, 235, 1);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
 }
 
-.cart-qty-value {
+.fnb-qty-value {
   min-width: 40px;
   text-align: center;
   font-size: 24px;
@@ -187,7 +199,7 @@
 }
 
 /* Empty State */
-.cart-empty {
+.fnb-empty {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -196,60 +208,121 @@
   width: 600px;
 }
 
-.cart-empty-icon {
+.fnb-empty-icon {
   font-size: 120px;
   margin-bottom: 30px;
   opacity: 0.4;
 }
 
-.cart-empty-text {
+.fnb-empty-text {
   font-size: 32px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.7);
   margin-bottom: 20px;
 }
 
-.cart-empty-subtext {
+.fnb-empty-subtext {
   font-size: 22px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.5);
 }
 
-/* Footer Section */
-.cart-footer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 140px;
+/* Footer Section (Total) */
+.fnb-footer {
+  margin-top: 30px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
 }
 
-.cart-total-section {
+.fnb-total-section {
   display: flex;
   align-items: baseline;
   gap: 20px;
-  margin-top:50px;
 }
 
-.cart-total-label {
+.fnb-total-label {
   font-size: 32px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.8);
 }
 
-.cart-total-amount {
+.fnb-total-amount {
   font-size: 52px;
   font-weight: 900;
   color: rgba(255, 255, 255, 0.98);
 }
 
-.cart-place-order-btn {
-  width: 320px;
+/* ===================== RIGHT SECTION (Summary) ===================== */
+.fnb-right {
+  width: 480px;
+  display: flex;
+  flex-direction: column;
+}
+
+.fnb-summary-title {
+  font-size: 44px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.96);
+  margin: 0 0 40px 0;
+  text-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+}
+
+.fnb-summary-card {
+  flex: 1;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.fnb-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.fnb-summary-label {
+  font-size: 24px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.fnb-summary-value {
+  font-size: 28px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.98);
+}
+
+.fnb-summary-divider {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 10px 0;
+}
+
+.fnb-summary-total {
+  margin-top: auto;
+  padding-top: 30px;
+  border-top: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.fnb-summary-total .fnb-summary-label {
+  font-size: 32px;
+}
+
+.fnb-summary-total .fnb-summary-value {
+  font-size: 32px;
+  color: rgba(255, 214, 0, 0.98);
+}
+
+/* Place Order Button (Cart only) */
+.fnb-place-order-btn {
+  width: 100%;
   height: 80px;
+  margin-top: 30px;
   border-radius: 16px;
   border: 3px solid rgba(37, 99, 235, 0.7);
   background: rgba(37, 99, 235, 0.25);
@@ -261,28 +334,27 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top:50px;
 }
 
-.cart-place-order-btn:hover {
+.fnb-place-order-btn:hover {
   background: rgba(37, 99, 235, 0.35);
 }
 
-.cart-place-order-btn.is-focused {
+.fnb-place-order-btn.is-focused {
   border-color: rgba(37, 99, 235, 1);
   background: rgba(37, 99, 235, 0.45);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.35);
 }
 
-.cart-place-order-btn:disabled {
+.fnb-place-order-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   border-color: rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Bottom Legend */
-.cart-legend {
+/* ===================== BOTTOM LEGEND ===================== */
+.fnb-legend {
   position: absolute;
   left: 56px;
   right: 56px;
@@ -297,57 +369,98 @@
   z-index: 3;
 }
 
-.cart-legend__group {
+.fnb-legend__group {
   display: flex;
   align-items: center;
   gap: 32px;
 }
 
-.cart-legend__item {
+.fnb-legend__item {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.cart-legend__icon {
+.fnb-legend__icon {
   font-size: 32px;
 }
 
-/* Z-index layering */
-#view-cart {
+/* ===================== Z-INDEX LAYERING ===================== */
+#view-cart,
+#view-bill {
   z-index: 1;
 }
-.cart-bg {
+
+.fnb-bg {
   z-index: 0;
 }
-.cart-vignette {
+
+.fnb-vignette {
   z-index: 1;
 }
-.cart-dim {
+
+.fnb-dim {
   z-index: 1;
 }
-.cart-main {
+
+.fnb-main {
   z-index: 2;
 }
-.cart-legend {
+
+.fnb-legend {
   z-index: 3;
 }
 
-/* Scrollbar for table body */
-.cart-table-container::-webkit-scrollbar {
+/* ===================== BILL-SPECIFIC STYLES ===================== */
+/* Bill date column */
+.fnb-table td.fnb-date-col {
+  font-size: 20px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Bill status column */
+.fnb-status {
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 18px;
+  font-weight: 800;
+  display: inline-block;
+}
+
+.fnb-status--processing {
+  background: rgba(255, 193, 7, 0.2);
+  color: rgba(255, 193, 7, 0.95);
+  border: 1px solid rgba(255, 193, 7, 0.4);
+}
+
+.fnb-status--completed {
+  background: rgba(76, 175, 80, 0.2);
+  color: rgba(76, 175, 80, 0.95);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+}
+
+.fnb-status--cancelled {
+  background: rgba(244, 67, 54, 0.2);
+  color: rgba(244, 67, 54, 0.95);
+  border: 1px solid rgba(244, 67, 54, 0.4);
+}
+
+/* Scrollbar styling */
+.fnb-table-container::-webkit-scrollbar {
   width: 8px;
 }
 
-.cart-table-container::-webkit-scrollbar-track {
+.fnb-table-container::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
-.cart-table-container::-webkit-scrollbar-thumb {
+.fnb-table-container::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.3);
   border-radius: 4px;
 }
 
-.cart-table-container::-webkit-scrollbar-thumb:hover {
+.fnb-table-container::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
