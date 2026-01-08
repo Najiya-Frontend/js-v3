@@ -732,15 +732,10 @@
       </div>
     </div>
 
-    <div class="fnb-legend__group">
-      <div class="fnb-legend__item">
-        <span class="fnb-legend__icon">◀▶</span>
-        <span>Qty</span>
-      </div>
-      <div class="fnb-legend__item">
-        <span class="fnb-legend__icon">OK</span>
-        <span>Select</span>
-      </div>
+
+    <div id="toggle-lang" class="tx-toggle tx-focusable" data-focus="welcome" data-focus-index="2">
+      <span class="tx-dot" aria-hidden="true"></span>
+      <span id="txt-lang">Go to Orders</span>
     </div>
   </div>
 </section>
@@ -842,7 +837,96 @@
     </div>
   </div>
 </section>
+<!-- ===================== ORDERS VIEW (FNB LAYOUT) ===================== -->
+<section id="view-orders" class="tx-view">
+  <!-- Background layers (same as cart/bill) -->
+  <div class="fnb-bg"></div>
+  <div class="fnb-vignette"></div>
+  <div class="fnb-dim"></div>
 
+  <!-- Main content -->
+  <div class="fnb-main">
+    <!-- LEFT: Orders table -->
+    <div class="fnb-left">
+      <div id="orders-page-title" class="fnb-page-title">Order History</div>
+
+      <div class="fnb-table-container">
+        <table class="fnb-table">
+          <thead>
+            <tr>
+              <th>Order Code</th>
+              <th>Date & Time</th>
+              <th>Status</th>
+              <th>Total</th>
+              <th style="text-align:right;">Note</th>
+            </tr>
+          </thead>
+
+          <tbody id="orders-table-body">
+            <!-- rows injected by orders.js -->
+          </tbody>
+        </table>
+
+        <!-- Empty state -->
+        <div id="orders-empty-state" class="fnb-empty" style="display:none;">
+          <div class="fnb-empty-icon">🧾</div>
+          <div class="fnb-empty-text">No orders yet</div>
+          <div class="fnb-empty-subtext">Your placed orders will appear here</div>
+        </div>
+      </div>
+
+      <!-- Footer (total) – optional, kept for consistency -->
+      <div class="fnb-footer">
+        <div class="fnb-total-section">
+          <div class="fnb-total-label">Total Orders</div>
+          <div id="orders-total-count" class="fnb-total-amount">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Summary (optional – can be left empty for now) -->
+    <div class="fnb-right">
+      <div class="fnb-summary-title">Orders Summary</div>
+      
+      <div class="fnb-summary-card">
+        <div class="fnb-summary-row">
+          <div class="fnb-summary-label">Total Orders:</div>
+          <div id="orders-summary-count" class="fnb-summary-value">0</div>
+        </div>
+
+        <div class="fnb-summary-row">
+          <div class="fnb-summary-label">Processing:</div>
+          <div id="orders-summary-processing" class="fnb-summary-value">0</div>
+        </div>
+
+        <div class="fnb-summary-row">
+          <div class="fnb-summary-label">Completed:</div>
+          <div id="orders-summary-completed" class="fnb-summary-value">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom legend – same as other FNB pages -->
+  <div class="fnb-legend">
+    <div class="fnb-legend__group">
+      <div class="fnb-legend__item">
+        <span class="fnb-legend__icon">⟵</span>
+        <span>Back</span>
+      </div>
+      <div class="fnb-legend__item">
+        <span class="fnb-legend__icon">▲▼</span>
+        <span>Navigate</span>
+      </div>
+    </div>
+
+    <div class="fnb-legend__group">
+      <div class="fnb-legend__item">
+        <span>Place Order</span>
+      </div>
+    </div>
+  </div>
+</section>
       <!-- ===================== MESSAGES VIEW ===================== -->
 <section id="view-messages" class="tx-view">
   <div class="mx-msg" id="mx-msg-root">

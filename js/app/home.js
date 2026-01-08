@@ -23,6 +23,7 @@
   var viewDiscoverCity = document.getElementById("view-discovercity");
   var viewPrayer = document.getElementById("view-prayer");
   var viewFeedback = document.getElementById("view-feedback");
+  var viewOrders = document.getElementById("view-orders");
 
 
 
@@ -512,10 +513,12 @@ function setHomeFocusById(id) {
       }
     }
     if (currentView === "feedback" && name !== "feedback") {
-      if (window.FeedbackPage && typeof window.FeedbackPage.close === "function") {
-        window.FeedbackPage.close();
+      if (window.FeedbackPage && typeof window.FeedbackPage.closeToHome === "function" && name === "home") {
+        window.FeedbackPage.closeToHome();
       }
+      if (viewFeedback) viewFeedback.style.display = "none";
     }
+
 
     // ===== ALWAYS reset all view classes first (THIS fixes your overlay bug) =====
   if (viewWelcome) viewWelcome.className = "tx-view";
@@ -535,6 +538,10 @@ function setHomeFocusById(id) {
   if (viewDiscoverCity) viewDiscoverCity.className = "tx-view";
   if (viewPrayer) viewPrayer.className = "tx-view";
   if (viewFeedback) viewFeedback.className = "tx-view";
+  // ✅ Feedback uses inline display:block in FeedbackPage.open()
+  // so force hide it when not the active view
+  if (viewFeedback && name !== "feedback") viewFeedback.style.display = "none";
+  if (viewOrders) viewOrders.className = "tx-view"; 
 
 
     setTopbarTheme(name);
@@ -612,6 +619,39 @@ function setHomeFocusById(id) {
     }
   } catch (e) {
     log("Error opening cart: " + (e && e.message ? e.message : e));
+  }
+  return;
+}
+if (name === "orders") {
+  prevView = currentView || "home";
+  currentView = "orders";
+  if (viewOrders) viewOrders.className = "tx-view is-active";
+
+  try {
+    var ordersRoute = PAGE_ROUTE_BY_KEY["KEY_ORDER_HISTORY"];
+
+    // Defensive fallback: search all routes if not in PAGE_ROUTE_BY_KEY
+    if (!ordersRoute && ROUTES_LIST && ROUTES_LIST.length) {
+      var i;
+      for (i = 0; i < ROUTES_LIST.length; i++) {
+        if (String(ROUTES_LIST[i].route_key || "").toUpperCase() === "KEY_ORDER_HISTORY") {
+          ordersRoute = ROUTES_LIST[i];
+          break;
+        }
+      }
+    }
+
+    // Background
+    if (ordersRoute && ordersRoute.route_bg && viewOrders) {
+      setPageBg(viewOrders, resolveRouteBgValue(ordersRoute.route_bg));
+    }
+
+    // Open the page module
+    if (window.OrdersPage && typeof window.OrdersPage.open === "function") {
+      window.OrdersPage.open(ordersRoute || null);
+    }
+  } catch (e) {
+    log("Error opening orders: " + (e && e.message ? e.message : e));
   }
   return;
 }
@@ -894,6 +934,11 @@ if (name === "bill") {
 
   //   return channelList;
   // }
+  // ✅ Allow page modules (Feedback, etc) to return to Home reliably
+window.goHome = function () {
+  showView("home");
+};
+
 
   function forceWelcomeOnBoot() {
     var h = String(window.location.hash || "");
@@ -1005,7 +1050,29 @@ if (name === "bill") {
 
   function onKeyDown(e) {
     var k = e.keyCode || e.which || 0;
-    
+    // ✅ Feedback overlay has priority (must handle U/back/left/right/ok inside feedback)
+    if (currentView === "feedback" && window.FeedbackPage && typeof window.FeedbackPage.handleKeyDown === "function") {
+      if (window.FeedbackPage.handleKeyDown(e)) { e.preventDefault(); return; }
+    }
+
+    // === ADD THE BLUE KEY BLOCK HERE ===
+  if (k === 86 || k === 66) {
+    if (currentView === "dining") {
+      console.log("Blue key pressed → navigating to Cart");
+      if (currentView === "dining" && window.DiningPage && typeof window.DiningPage.hideDetail === "function") {
+        try { window.DiningPage.hideDetail(); } catch (e) {}
+      }
+      showView("cart");
+      e.preventDefault();
+      return;
+    }
+    if (currentView === "cart") {
+      console.log("Blue key → Orders (from cart)");
+      showView("orders");
+      e.preventDefault();
+      return;
+    }
+  }
 
 
     var LEFT=37, UP=38, RIGHT=39, DOWN=40, OK=13;
@@ -1063,9 +1130,16 @@ if (name === "bill") {
         return;
       }
       if (currentView === "feedback") {
+        // ✅ Let FeedbackPage handle "back" first (previous question, or exit on first)
+        if (window.FeedbackPage && typeof window.FeedbackPage.handleKeyDown === "function") {
+          if (window.FeedbackPage.handleKeyDown(e)) return;
+        }
+        // fallback
         showView(prevView || "home");
         return;
       }
+
+
 
 
 

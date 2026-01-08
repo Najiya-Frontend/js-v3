@@ -300,7 +300,6 @@
     var row = Math.floor(focusCategoryIndex / SUB_COLS);
     var tileTop = row * (TILE_H + TILE_GAP);
     var tileBottom = tileTop + TILE_H;
-
     var padTop = 0;
     var padBottom = TILE_GAP;
 
@@ -444,7 +443,7 @@
       });
 
       if (w.tenxToast) {
-  w.tenxToast(
+        w.tenxToast(
         "Added to cart\n" +
         detailItem.name +
         "\nQty: " + detailQuantity +
@@ -574,6 +573,7 @@
     var k = e.keyCode || e.which || 0;
     var LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40, OK = 13;
     var BACK1 = 8, BACK2 = 461, BACK3 = 10009, BACK4 = 27;
+
 
     if (mode === "detail") {
       if (k === LEFT)  { moveDetail(-1); return true; }

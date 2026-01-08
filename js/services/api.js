@@ -69,38 +69,41 @@ function xhrJSON(method, url, body, cb) {
 
   xhr.timeout = 15000;
 
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState !== 4) return;
+xhr.onreadystatechange = function () {
+  if (xhr.readyState !== 4) return;
 
-    var raw = xhr.responseText || "";
-    var ct = "";
-    try { ct = String(xhr.getResponseHeader("content-type") || "").toLowerCase(); } catch (eCt) {}
+  var raw = xhr.responseText || "";
+  var ct = "";
+  try { ct = String(xhr.getResponseHeader("content-type") || "").toLowerCase(); } catch (eCt) {}
 
-    // ✅ detect HTML error pages even with 200
-    var trimmed = raw.replace(/^\uFEFF/, "").replace(/^\s+/, "");
-    var looksHtml = trimmed.charAt(0) === "<" || ct.indexOf("text/html") >= 0;
+  // ✅ ALWAYS log so we see backend errors
+  try { console.log("[xhrJSON]", method, url, "->", xhr.status, ct, "Raw length:", raw.length, "First 200 chars:", raw.substring(0, 200)); } catch (e2) {}
 
-    // ✅ ALWAYS log so we see backend errors
-    try { console.log("[xhrJSON]", method, url, "->", xhr.status, (looksHtml ? "[HTML]" : ""), raw); } catch (e2) {}
+  // treat HTML as error (even if 200)
+  var trimmed = raw.replace(/^\uFEFF/, "").replace(/^\s+/, "");
+  var looksHtml = trimmed.charAt(0) === "<" || ct.indexOf("text/html") >= 0;
 
-    // treat HTML as error (even if 200)
-    if (looksHtml) {
-      cb({
-        status: xhr.status,
-        url: url,
-        raw: raw,
-        contentType: ct,
-        message: "Expected JSON but got HTML (backend PHP error page)."
-      }, null);
-      return;
-    }
+  if (looksHtml) {
+    cb({
+      status: xhr.status,
+      url: url,
+      raw: raw,
+      contentType: ct,
+      message: "Expected JSON but got HTML (backend PHP error page). Check console for raw response."
+    }, null);
+    return;
+  }
 
-    var data = null;
-    try { data = JSON.parse(trimmed || "{}"); } catch (e) { data = null; }
+  var data = null;
+  try { data = JSON.parse(trimmed || "{}"); } catch (e) {
+    console.error("[xhrJSON] JSON parse error:", e.message);
+    cb({ status: xhr.status, url: url, raw: raw, parseError: e.message }, null);
+    return;
+  }
 
-    if (xhr.status >= 200 && xhr.status < 300) cb(null, data);
-    else cb({ status: xhr.status, url: url, raw: raw, data: data }, data);
-  };
+  if (xhr.status >= 200 && xhr.status < 300) cb(null, data);
+  else cb({ status: xhr.status, url: url, raw: raw, data: data }, data);
+};
 
   xhr.ontimeout = function () { cb({ status: 0, url: url, raw: "TIMEOUT" }, null); };
   xhr.onerror   = function () { cb({ status: 0, url: url, raw: "NETWORK_ERROR" }, null); };
@@ -594,6 +597,77 @@ function syncIdsFromAppJson(app) {
     if (url.indexOf("/admin-portal/assets/") < 0) return url;
     return url.replace(/^https?:\/\/[^\/]+/i, HOST);
   }
+  // ===================== FEEDBACK / SURVEY submit =====================
+function submitSurvey(params, cb) {
+  params = params || {};
+
+  var p = {
+    then: function (ok, bad) {
+      submitSurvey(params, function (err, data) {
+        if (err) { if (bad) bad(err); return; }
+        if (ok) ok(data);
+      });
+      return p;
+    }
+  };
+
+  ensureDevice(function (err, base) {
+    if (err) { cb && cb(err, null); return; }
+
+    var di = safeGetDeviceInfo() || base || {};
+
+    // body your backend can use (adjust names if needed)
+    var body = {
+      app_id: Number(di.app_id || base.app_id || 2),
+      hotel_id: Number(params.hotel_id || di.hotel_id || base.hotel_id || 1),
+      device_id: Number(di.device_id || base.device_id || 0),
+      guest_id: Number(params.guest_id || di.guest_id || base.guest_id || 0),
+      room_id:  Number(params.room_id  || di.room_id  || base.room_id  || 0),
+      language_id: Number(params.language_id || di.language_id || 1),
+
+      survey_id: params.survey_id != null ? Number(params.survey_id) : null,
+      answers: Array.isArray(params.answers) ? params.answers : []
+    };
+
+    // Some installs don’t require guest/room, but if yours does, keep this:
+    // if (!body.guest_id || !body.hotel_id) {
+    //   cb && cb({ message: "Device not bound (guest_id/hotel_id missing)." }, null);
+    //   return;
+    // }
+
+    // Try common endpoints (because naming differs per backend)
+    var endpoints = [
+      "/rest-api/api/v2/rest/submit_survey/",
+      "/rest-api/api/v2/rest/survey_submit/",
+      "/rest-api/api/v2/rest/feedback_submit/",
+      "/rest-api/api/v2/rest/survey/"
+    ];
+
+    var idx = 0;
+
+    function tryNext(lastErr) {
+      if (idx >= endpoints.length) {
+        cb && cb(lastErr || { message: "No survey endpoint worked." }, null);
+        return;
+      }
+
+      var url = HOST + endpoints[idx++];
+      xhrJSON("POST", url, body, function (e2, res) {
+        // If 404 or "not found", try next endpoint
+        if (e2 && (e2.status === 404 || e2.status === 405)) {
+          tryNext(e2);
+          return;
+        }
+        if (e2) { cb && cb(e2, null); return; }
+        cb && cb(null, res);
+      });
+    }
+
+    tryNext(null);
+  });
+
+  return p;
+}
 
 
 
@@ -610,6 +684,8 @@ function syncIdsFromAppJson(app) {
     stripHtmlTags: function (html) { return stripHtmlTags(html); },
     createOrder: function (p) { return createOrder(p); },
     createTicket: function (p) { return createTicket(p); },
+    submitSurvey: function (p) { return submitSurvey(p); },
+
 
 
 

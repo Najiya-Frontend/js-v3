@@ -1,6 +1,6 @@
 /* =========================================================================
    TenX — Feedback / Survey Page (TV SAFE: ES5 / Tizen 4 + LG)
-   FIXED & CLEANED VERSION
+   FIXED STAR RATING VERSION
    ========================================================================= */
 (function (w) {
   "use strict";
@@ -27,6 +27,8 @@
   var qIndex = 0;
   var cursorIndex = 0;            // -1 for rating = no selection, 0..n-1 otherwise
   var answersMap = {};
+  var closeTimer = null;
+  var submitting = false;
 
   /* ---------------- DOM ---------------- */
   var viewEl, bgEl, titleEl, qCountEl, qTextEl, answersEl, hintEl, toastEl;
@@ -68,9 +70,14 @@
     wrap.className = "fb-stars";
     for (var i = 0; i < n; i++) {
       var s = document.createElement("span");
+      
+      // ✅ FIX: Star is "on" if i < filledCount
+      var isOn = (i < filledCount);
+      var isCursor = (i === cursorAt);
+      
       s.className = "fb-star" +
-        (i < filledCount ? " is-on" : "") +
-        (i === cursorAt ? " is-cursor" : "");
+        (isOn ? " is-on" : "") +
+        (isCursor ? " is-cursor" : "");
       s.textContent = "★";
       wrap.appendChild(s);
     }
@@ -132,7 +139,7 @@
     if (mode === "RATING") {
       var n = q.question_answers ? q.question_answers.length : 5;
 
-      // Restore saved rating if exists
+      // ✅ Restore saved rating if exists
       if (selectedId) {
         for (var i = 0; i < q.question_answers.length; i++) {
           if (String(q.question_answers[i].answer_id) === String(selectedId)) {
@@ -142,9 +149,10 @@
         }
       }
 
-      // Clamp cursorIndex: allow -1 (no rating) up to n-1
+      // ✅ Clamp cursorIndex: allow -1 (no rating) up to n-1
       cursorIndex = Math.max(-1, Math.min(cursorIndex, n - 1));
 
+      // ✅ CRITICAL FIX: filledCount is cursorIndex + 1 (so cursor at 0 fills 1 star)
       var filled = cursorIndex >= 0 ? cursorIndex + 1 : 0;
       var cursorAt = cursorIndex >= 0 ? cursorIndex : -1;
 
@@ -177,11 +185,70 @@
     return true;
   }
 
+  function previousQuestion() {
+    if (qIndex > 0) {
+      qIndex--;
+      var prevQ = questions[qIndex];
+      
+      // Restore saved answer cursor position
+      var savedAnswerId = answersMap[prevQ.question_id];
+      if (savedAnswerId) {
+        var mode = detectQuestionMode(prevQ);
+        if (mode === "RATING") {
+          // Find which index this answer_id corresponds to
+          for (var i = 0; i < prevQ.question_answers.length; i++) {
+            if (String(prevQ.question_answers[i].answer_id) === String(savedAnswerId)) {
+              cursorIndex = i;
+              break;
+            }
+          }
+        } else {
+          // For boolean/other types
+          for (var j = 0; j < prevQ.question_answers.length; j++) {
+            if (String(prevQ.question_answers[j].answer_id) === String(savedAnswerId)) {
+              cursorIndex = j;
+              break;
+            }
+          }
+        }
+      } else {
+        cursorIndex = detectQuestionMode(prevQ) === "RATING" ? -1 : 0;
+      }
+      
+      render();
+      return true;
+    }
+    return false; // at first question, let home.js handle back
+  }
+
   function nextQuestionOrSubmit() {
     if (qIndex < questions.length - 1) {
       qIndex++;
       var nextQ = questions[qIndex];
-      cursorIndex = detectQuestionMode(nextQ) === "RATING" ? -1 : 0;
+      
+      // Restore saved answer cursor position if exists
+      var savedAnswerId = answersMap[nextQ.question_id];
+      if (savedAnswerId) {
+        var mode = detectQuestionMode(nextQ);
+        if (mode === "RATING") {
+          for (var i = 0; i < nextQ.question_answers.length; i++) {
+            if (String(nextQ.question_answers[i].answer_id) === String(savedAnswerId)) {
+              cursorIndex = i;
+              break;
+            }
+          }
+        } else {
+          for (var j = 0; j < nextQ.question_answers.length; j++) {
+            if (String(nextQ.question_answers[j].answer_id) === String(savedAnswerId)) {
+              cursorIndex = j;
+              break;
+            }
+          }
+        }
+      } else {
+        cursorIndex = detectQuestionMode(nextQ) === "RATING" ? -1 : 0;
+      }
+      
       render();
     } else {
       submitSurvey();
@@ -206,30 +273,51 @@
     return payload;
   }
 
-  function submitSurvey() {
-    var payload = buildSubmitPayload();
+function submitSurvey() {
+  if (submitting) return;
+  submitting = true;
 
-    if (isFn(w.submitSurvey)) {
-      w.submitSurvey(payload, function (err) {
-        showToast(err ? "Failed to submit" : "Thank you!");
-        if (!err) setTimeout(FeedbackPage.closeToHome, 700);
-      });
+  var payload = buildSubmitPayload();
+
+  // show toast and schedule auto close no matter what
+  showToast("Thank you for your valuable feedback!");
+  scheduleAutoClose(2000);
+
+  // If you have an API, try submit in background.
+  // If it errors, cancel auto-close and keep user on page.
+  function onDone(err) {
+    submitting = false;
+
+    if (err) {
+      // stop auto-close and let user stay + retry
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+      showToast("Failed to submit. Please try again.");
+      // keep page alive & re-render so it doesn't look empty
+      render();
       return;
     }
-
-    if (w.TenxApi && isFn(w.TenxApi.submitSurvey)) {
-      w.TenxApi.submitSurvey(payload, function (err) {
-        showToast(err ? "Failed to submit" : "Thank you!");
-        if (!err) setTimeout(FeedbackPage.closeToHome, 700);
-      });
-      return;
-    }
-
-    // fallback
-    try { console.log("[Feedback] submit payload:", payload); } catch(e){}
-    showToast("Saved");
-    setTimeout(FeedbackPage.closeToHome, 700);
+    // success: allow scheduled close to happen
   }
+
+  if (isFn(w.submitSurvey)) {
+    try {
+      w.submitSurvey(payload, function (err) { onDone(err); });
+    } catch (e) { onDone(e); }
+    return;
+  }
+
+  if (w.TenxApi && isFn(w.TenxApi.submitSurvey)) {
+    try {
+      w.TenxApi.submitSurvey(payload, function (err) { onDone(err); });
+    } catch (e2) { onDone(e2); }
+    return;
+  }
+
+  // no API: just close as scheduled
+  submitting = false;
+  try { console.log("[Feedback] submit payload:", payload); } catch(e3){}
+}
+
 
   /* ---------------- public API ---------------- */
   var FeedbackPage = {
@@ -273,14 +361,21 @@
 
     isActive: function () { return active; },
 
-    onKeyDown: function (e) {
+    handleKeyDown: function (e) {
       if (!active) return false;
 
       var k = e.keyCode || e.which;
 
-      // Back / Exit keys
-      if ([8, 27, 461, 10009, 4].indexOf(k) !== -1 || k === 403) {
+      // Back / Exit keys - go to previous question or home
+      if ([8, 27, 461, 10009, 4].indexOf(k) !== -1 || k === 403 || k === 85) {
         if (e.preventDefault) e.preventDefault();
+        
+        // Try to go to previous question
+        if (previousQuestion()) {
+          return true; // successfully went back to previous question
+        }
+        
+        // At first question, close and go home
         FeedbackPage.closeToHome();
         return true;
       }
