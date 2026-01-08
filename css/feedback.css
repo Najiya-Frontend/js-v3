@@ -1,0 +1,192 @@
+/* =========================================================================
+   TenX — Feedback / Survey (TV SAFE: Tizen 4 + LG)
+   - absolute layout, no grid, no CSS vars dependency
+   ========================================================================= */
+
+#view-feedback{
+  position:absolute;
+  left:0; top:0;
+  width:1920px; height:1080px;
+  overflow:hidden;
+  display:none; /* shown by JS */
+  background:#000;
+}
+
+#view-feedback.is-active{ display:block; }
+
+#view-feedback .fb-bg{
+  position:absolute;
+  left:0; top:0;
+  width:1920px; height:1080px;
+  background:#000;
+  background-size:cover;
+  background-position:center;
+  opacity:1;
+}
+
+#view-feedback .fb-dim{
+  position:absolute;
+  left:0; top:0;
+  width:1920px; height:1080px;
+  background: rgba(0,0,0,.60);
+}
+
+#view-feedback .fb-wrap{
+  position:absolute;
+  left:0; top:0;
+  width:1920px; height:1080px;
+}
+
+#view-feedback .fb-title{
+  position:absolute;
+  left:0; top:220px;
+  width:1920px;
+  text-align:center;
+  font-size:56px;
+  font-weight:800;
+  letter-spacing:.3px;
+  color:#fff;
+}
+
+#view-feedback .fb-qcount{
+  position:absolute;
+  left:0; top:350px;
+  width:1920px;
+  text-align:center;
+  font-size:22px;
+  font-weight:700;
+  color: rgba(255,255,255,.72);
+}
+
+#view-feedback .fb-card{
+  position:absolute;
+  left:360px; top:410px;
+  width:1200px; height:300px;
+  border: 2px solid rgba(255,255,255,.35);
+  border-radius: 22px;
+  background: rgba(0,0,0,.20);
+}
+
+#view-feedback .fb-question{
+  position:absolute;
+  left:0; top:72px;
+  width:1200px;
+  text-align:center;
+  font-size:54px;
+  font-weight:900;
+  color:#fff;
+}
+
+#view-feedback .fb-answers{
+  position:absolute;
+  left:0; top:185px;
+  width:1200px;
+  text-align:center;
+  white-space:nowrap;
+}
+
+#view-feedback .fb-stars{
+  display:inline-block;
+}
+
+#view-feedback .fb-star{
+  display:inline-block;
+  font-size:66px;
+  line-height:66px;
+  margin:0 10px;
+  color: rgba(255,255,255,.65);
+  text-shadow: 0 3px 10px rgba(0,0,0,.45);
+  -webkit-transition: transform .12s ease, color .12s ease;
+  transition: transform .12s ease, color .12s ease;
+}
+
+#view-feedback .fb-star.is-on{
+  color:#f7c600; /* yellow */
+}
+
+#view-feedback .fb-star.is-cursor{
+  -webkit-transform: scale(1.08);
+  transform: scale(1.08);
+}
+
+#view-feedback .fb-bool{
+  display:inline-block;
+}
+
+#view-feedback .fb-opt{
+  display:inline-block;
+  min-width: 240px;
+  height: 74px;
+  line-height: 74px;
+  margin: 0 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,.32);
+  background: rgba(0,0,0,.20);
+  font-size:34px;
+  font-weight:900;
+  color: rgba(255,255,255,.90);
+  text-align:center;
+  -webkit-transition: transform .12s ease, border-color .12s ease, background .12s ease;
+  transition: transform .12s ease, border-color .12s ease, background .12s ease;
+}
+
+#view-feedback .fb-opt.is-cursor{
+  -webkit-transform: scale(1.06);
+  transform: scale(1.06);
+  border-color: rgba(255,255,255,.55);
+}
+
+#view-feedback .fb-opt.is-selected{
+  border-color: rgba(247,198,0,.75);
+  background: rgba(247,198,0,.10);
+}
+
+#view-feedback .fb-hint{
+  position:absolute;
+  left:0; bottom:58px;
+  width:1920px;
+  text-align:center;
+  font-size:26px;
+  font-weight:800;
+  color: rgba(255,255,255,.78);
+}
+
+#view-feedback .fb-back{
+  position:absolute;
+  left:70px; bottom:54px;
+  font-size:30px;
+  font-weight:900;
+  color:#fff;
+}
+
+#view-feedback .fb-back .fb-back-ico{
+  display:inline-block;
+  margin-right:10px;
+  font-size:34px;
+  opacity:.95;
+}
+
+#view-feedback .fb-toast{
+  position:absolute;
+  left:50%;
+  bottom:120px;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 22px;
+  font-weight: 800;
+  background: rgba(0,0,0,.78);
+  color: #fff;
+  opacity: 0;
+  pointer-events:none;
+  -webkit-transition: opacity 180ms ease, -webkit-transform 180ms ease;
+  transition: opacity 180ms ease, transform 180ms ease;
+  max-width: 80vw;
+  text-align:center;
+  white-space:pre-line;
+}
+
+#view-feedback .fb-toast.is-on{
+  opacity:1;
+}

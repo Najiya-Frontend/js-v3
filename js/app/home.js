@@ -22,6 +22,8 @@
   var viewRestaurants = document.getElementById("view-restaurants");
   var viewDiscoverCity = document.getElementById("view-discovercity");
   var viewPrayer = document.getElementById("view-prayer");
+  var viewFeedback = document.getElementById("view-feedback");
+
 
 
   
@@ -509,6 +511,11 @@ function setHomeFocusById(id) {
         window.PrayerPage.close();
       }
     }
+    if (currentView === "feedback" && name !== "feedback") {
+      if (window.FeedbackPage && typeof window.FeedbackPage.close === "function") {
+        window.FeedbackPage.close();
+      }
+    }
 
     // ===== ALWAYS reset all view classes first (THIS fixes your overlay bug) =====
   if (viewWelcome) viewWelcome.className = "tx-view";
@@ -518,7 +525,7 @@ function setHomeFocusById(id) {
   if (viewMusic) viewMusic.className = "tx-view";
   if (viewMessages) viewMessages.className = "tx-view";
   if (viewVOD) viewVOD.className = "tx-view";
-  if (viewFacilities) viewFacilities.className = "tx-view"
+  if (viewFacilities) viewFacilities.className = "tx-view";
   if (viewHotelInfo) viewHotelInfo.className = "tx-view";
   if (viewRoomService) viewRoomService.className = "tx-view";
   if (viewDining) viewDining.className = "tx-view";
@@ -527,6 +534,7 @@ function setHomeFocusById(id) {
   if (viewRestaurants) viewRestaurants.className = "tx-view";
   if (viewDiscoverCity) viewDiscoverCity.className = "tx-view";
   if (viewPrayer) viewPrayer.className = "tx-view";
+  if (viewFeedback) viewFeedback.className = "tx-view";
 
 
     setTopbarTheme(name);
@@ -807,6 +815,25 @@ if (name === "bill") {
   }
   return;
 }
+  if (name === "feedback") {
+    prevView = currentView || "home";
+    currentView = "feedback";
+    if (viewFeedback) viewFeedback.className = "tx-view is-active";
+
+    try {
+      var fbRoute = PAGE_ROUTE_BY_KEY["KEY_FEEDBACK"] || findByKey("KEY_FEEDBACK", false);
+      if (fbRoute && fbRoute.route_bg && viewFeedback) {
+        setPageBg(viewFeedback, resolveRouteBgValue(fbRoute.route_bg));
+      }
+
+      if (window.FeedbackPage && typeof window.FeedbackPage.open === "function") {
+        window.FeedbackPage.open(fbRoute);
+      }
+    } catch (e) {
+      log("Error opening feedback: " + (e && e.message ? e.message : e));
+    }
+    return;
+  }
 
 
 
@@ -962,6 +989,10 @@ if (name === "bill") {
   showView("prayer");
   return;
 }
+  if (tileId === "tile-feedback") {
+    showView("feedback");
+    return;
+  }
 
 
     if (rt) {
@@ -974,6 +1005,8 @@ if (name === "bill") {
 
   function onKeyDown(e) {
     var k = e.keyCode || e.which || 0;
+    
+
 
     var LEFT=37, UP=38, RIGHT=39, DOWN=40, OK=13;
     var BACK1=8, BACK2=461, BACK3=10009, BACK4=27;
@@ -1026,6 +1059,10 @@ if (name === "bill") {
         return;
       }
       if (currentView === "prayer") {
+        showView(prevView || "home");
+        return;
+      }
+      if (currentView === "feedback") {
         showView(prevView || "home");
         return;
       }
@@ -1195,7 +1232,19 @@ if (name === "bill") {
 
       return;
     }
-    
+    if (currentView === "feedback") {
+      if (window.FeedbackPage && typeof window.FeedbackPage.handleKeyDown === "function") {
+        if (window.FeedbackPage.handleKeyDown(e)) { e.preventDefault(); return; }
+      } 
+
+      if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+        e.preventDefault();
+        showView(prevView || "home");
+        return;
+      }
+      if (k === OK) { e.preventDefault(); return; }
+      return;
+    }
 
     // OK should only trigger tile actions when you're on HOME or WELCOME
     if (k === OK) {
@@ -1323,6 +1372,7 @@ if (name === "bill") {
       if (k === OK) { e.preventDefault(); return; }
       return;
     }
+
 
     if (currentView === "welcome") {
       if (k === DOWN) { if (welcomeFocusIndex === 0) setWelcomeFocus(1); return; }
@@ -1909,7 +1959,7 @@ if (name === "bill") {
     mapTile("tile-roomcontrol", ["key_room_control","room_control","controls","iot"], "Room Control", false, null);
     mapTile("tile-cart", ["key_cart","cart","view_cart","basket"], "Cart", false, null);
     mapTile("tile-messages", ["key_messages","messages","inbox"], "Messages", false, null);
-    mapTile("tile-viewbill", ["view bill","bill","folio"], "View Bill", false, null);
+    mapTile("tile-viewbill", ["key_view_bill","bill","folio"], "Bill", false, null);
     mapTile("tile-apps", ["key_socialstore","socialstore","apps","app store","store"], "Apps", false, null);
     mapTile("tile-feedback", ["key_feedback","feedback","guest feedback","review"], "Feedback", false, null);
 
