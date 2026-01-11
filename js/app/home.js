@@ -24,6 +24,7 @@
   var viewPrayer = document.getElementById("view-prayer");
   var viewFeedback = document.getElementById("view-feedback");
   var viewOrders = document.getElementById("view-orders");
+  var viewApps = document.getElementById("view-apps");
 
 
 
@@ -518,6 +519,12 @@ function setHomeFocusById(id) {
       }
       if (viewFeedback) viewFeedback.style.display = "none";
     }
+    if (currentView === "apps" && name !== "apps") {
+      if (window.AppsPage && typeof window.AppsPage.close === "function") {
+        window.AppsPage.close();
+      }
+    }
+
 
 
     // ===== ALWAYS reset all view classes first (THIS fixes your overlay bug) =====
@@ -542,6 +549,7 @@ function setHomeFocusById(id) {
   // so force hide it when not the active view
   if (viewFeedback && name !== "feedback") viewFeedback.style.display = "none";
   if (viewOrders) viewOrders.className = "tx-view"; 
+  if (viewApps) viewApps.className = "tx-view";
 
 
     setTopbarTheme(name);
@@ -875,6 +883,25 @@ if (name === "bill") {
     return;
   }
 
+  if (name === "apps") {
+    prevView = currentView || "home";
+    currentView = "apps";
+    if (viewApps) viewApps.className = "tx-view is-active";
+    try {
+      var appsRoute = PAGE_ROUTE_BY_KEY["KEY_APPS"] || findByKey("KEY_APPS", false);
+      if (appsRoute && appsRoute.route_bg && viewApps) {
+        setPageBg(viewApps, resolveRouteBgValue(appsRoute.route_bg));
+      }
+      if (window.AppsPage && typeof window.AppsPage.open === "function") {
+        window.AppsPage.open(appsRoute);
+      }
+    } catch (e) {
+
+      log("Error opening apps: " + (e && e.message ? e.message : e));
+    }
+    return;
+  }
+
 
 
   // ===== default views =====
@@ -1036,6 +1063,10 @@ window.goHome = function () {
 }
   if (tileId === "tile-feedback") {
     showView("feedback");
+    return;
+  }
+  if (tileId === "tile-apps") {
+    showView("apps");
     return;
   }
 
@@ -1408,6 +1439,20 @@ window.goHome = function () {
     
     return;
   }
+
+  if (currentView === "apps") {
+    if (window.AppsPage && typeof window.AppsPage.handleKeyDown === "function") {
+      if (window.AppsPage.handleKeyDown(e)) { e.preventDefault(); return; }
+    }
+    if (k === BACK1 || k === BACK2 || k === BACK3 || k === BACK4) {
+      e.preventDefault();
+      showView(prevView || "home");
+      return;
+    }
+    if (k === OK) { e.preventDefault(); return; }
+    return;
+  }
+  
 
   // COMPLETE EXAMPLE OF THE V KEY HANDLER SECTION:
 /*

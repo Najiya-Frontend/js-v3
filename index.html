@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="css/fnb.css">
   <link rel="stylesheet" href="css/prayer.css">
   <link rel="stylesheet" href="css/feedback.css">
+  <link rel="stylesheet" href="css/apps.css">
 
   
 
@@ -1259,7 +1260,47 @@
 
   <audio id="mx-audio" preload="metadata"></audio>
 </section>
+<!-- ===================== APPS VIEW ===================== -->
+<!-- Add this section after the feedback view in index.html -->
+<section id="view-apps" class="tx-view">
+  <div class="apps-bg"></div>
+  <div class="apps-vignette"></div>
+  <div class="apps-dim"></div>
 
+  <div class="apps-main">
+    <div id="apps-page-title" class="apps-page-title">Apps</div>
+    <div id="apps-grid" class="apps-grid">
+      <!-- Apps cards will be rendered here by apps.js -->
+    </div>
+  </div>
+
+  <!-- Bottom Legend -->
+  <footer class="apps-legend">
+    <div class="apps-legend__group">
+      <div class="apps-legend__item">
+        <span class="apps-legend__icon">↩</span>
+        <span>Back</span>
+      </div>
+      <div class="apps-legend__item">
+        <span class="apps-legend__icon">↕↔</span>
+        <span>Navigate</span>
+      </div>
+    </div>
+
+    <div class="apps-legend__group">
+      <div class="apps-legend__item">
+        <span>OK: Launch App</span>
+      </div>
+    </div>
+
+    <div class="apps-legend__group">
+      <div class="apps-legend__item">
+        <span>Apps</span>
+      </div>
+    </div>
+  </footer>
+</section>
+<!-- ===================== END APPS VIEW ===================== -->
 <!-- ===================== FEEDBACK / SURVEY ===================== -->
 <section id="view-feedback">
   <div id="fb-bg" class="fb-bg"></div>
@@ -1306,6 +1347,8 @@
   <script src="js/app/discovercity.js"></script>
   <script src="js/app/prayer.js"></script>
   <script src="js/app/feedback.js"></script>
+  <script src="js/app/orders.js"></script>
+  <script src="js/app/apps.js"></script>
 
   
 
