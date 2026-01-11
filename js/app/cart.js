@@ -253,6 +253,7 @@ function placeOrder() {
     tenxToast("Cart is empty!", 2500, "warn");
     return;
   }
+  console.log("[cart] device_info:", (window.TenxApi && TenxApi.getDeviceInfo) ? TenxApi.getDeviceInfo() : null);
 
   if (!w.TenxApi || typeof w.TenxApi.createOrder !== "function") {
     tenxToast("API not ready. Please try again.", 3000, "error");

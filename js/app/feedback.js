@@ -1,6 +1,6 @@
 /* =========================================================================
    TenX — Feedback / Survey Page (TV SAFE: ES5 / Tizen 4 + LG)
-   FIXED STAR RATING VERSION
+   FIXED: Back navigation from first question + Auto-exit after submission
    ========================================================================= */
 (function (w) {
   "use strict";
@@ -9,7 +9,7 @@
   /* ---------------- helpers ---------------- */
   function qs(id) { return document.getElementById(id); }
   function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
-  function safeText(el, txt) { if (el) el.textContent = (txt == null ? "" : String(txt)); }
+  function safeText(el, txt) { if (el) el.textContent = (txt == null) ? "" : String(txt); }
   function isFn(fn) { return typeof fn === "function"; }
 
   function normalizeUrl(u) {
@@ -25,7 +25,7 @@
   var survey = null;
   var questions = [];
   var qIndex = 0;
-  var cursorIndex = 0;            // -1 for rating = no selection, 0..n-1 otherwise
+  var cursorIndex = 0;
   var answersMap = {};
   var closeTimer = null;
   var submitting = false;
@@ -71,7 +71,6 @@
     for (var i = 0; i < n; i++) {
       var s = document.createElement("span");
       
-      // ✅ FIX: Star is "on" if i < filledCount
       var isOn = (i < filledCount);
       var isCursor = (i === cursorAt);
       
@@ -139,7 +138,6 @@
     if (mode === "RATING") {
       var n = q.question_answers ? q.question_answers.length : 5;
 
-      // ✅ Restore saved rating if exists
       if (selectedId) {
         for (var i = 0; i < q.question_answers.length; i++) {
           if (String(q.question_answers[i].answer_id) === String(selectedId)) {
@@ -149,17 +147,14 @@
         }
       }
 
-      // ✅ Clamp cursorIndex: allow -1 (no rating) up to n-1
       cursorIndex = Math.max(-1, Math.min(cursorIndex, n - 1));
 
-      // ✅ CRITICAL FIX: filledCount is cursorIndex + 1 (so cursor at 0 fills 1 star)
       var filled = cursorIndex >= 0 ? cursorIndex + 1 : 0;
       var cursorAt = cursorIndex >= 0 ? cursorIndex : -1;
 
       renderStars(n, filled, cursorAt);
       safeText(hintEl, "← → Navigate arrow keys to leave your rating");
     } else {
-      // BOOLEAN or fallback
       var cursor = clamp(cursorIndex, 0, (q.question_answers || []).length - 1);
       renderBoolean(q.question_answers || [], selectedId, cursor);
       safeText(hintEl, "← → Choose option, OK to confirm");
@@ -173,13 +168,12 @@
     var mode = detectQuestionMode(q);
 
     if (mode === "RATING") {
-      if (cursorIndex < 0) return false; // no star selected
+      if (cursorIndex < 0) return false;
       var idx = clamp(cursorIndex, 0, q.question_answers.length - 1);
       answersMap[q.question_id] = q.question_answers[idx].answer_id;
       return true;
     }
 
-    // BOOLEAN / other
     var idx = clamp(cursorIndex, 0, q.question_answers.length - 1);
     answersMap[q.question_id] = q.question_answers[idx].answer_id;
     return true;
@@ -190,12 +184,10 @@
       qIndex--;
       var prevQ = questions[qIndex];
       
-      // Restore saved answer cursor position
       var savedAnswerId = answersMap[prevQ.question_id];
       if (savedAnswerId) {
         var mode = detectQuestionMode(prevQ);
         if (mode === "RATING") {
-          // Find which index this answer_id corresponds to
           for (var i = 0; i < prevQ.question_answers.length; i++) {
             if (String(prevQ.question_answers[i].answer_id) === String(savedAnswerId)) {
               cursorIndex = i;
@@ -203,7 +195,6 @@
             }
           }
         } else {
-          // For boolean/other types
           for (var j = 0; j < prevQ.question_answers.length; j++) {
             if (String(prevQ.question_answers[j].answer_id) === String(savedAnswerId)) {
               cursorIndex = j;
@@ -218,7 +209,9 @@
       render();
       return true;
     }
-    return false; // at first question, let home.js handle back
+    
+    // ✅ FIX #2: At first question, return false so home.js handles back
+    return false;
   }
 
   function nextQuestionOrSubmit() {
@@ -226,7 +219,6 @@
       qIndex++;
       var nextQ = questions[qIndex];
       
-      // Restore saved answer cursor position if exists
       var savedAnswerId = answersMap[nextQ.question_id];
       if (savedAnswerId) {
         var mode = detectQuestionMode(nextQ);
@@ -273,51 +265,58 @@
     return payload;
   }
 
-function submitSurvey() {
-  if (submitting) return;
-  submitting = true;
+  // ✅ FIX #2: Schedule auto-close to home after submission
+  function scheduleAutoClose(delayMs) {
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = setTimeout(function() {
+      FeedbackPage.closeToHome();
+    }, delayMs || 2000);
+  }
 
-  var payload = buildSubmitPayload();
+  function submitSurvey() {
+    if (submitting) return;
+    submitting = true;
 
-  // show toast and schedule auto close no matter what
-  showToast("Thank you for your valuable feedback!");
-  scheduleAutoClose(2000);
+    var payload = buildSubmitPayload();
 
-  // If you have an API, try submit in background.
-  // If it errors, cancel auto-close and keep user on page.
-  function onDone(err) {
-    submitting = false;
+    // ✅ FIX #2: Show toast and schedule auto-close immediately
+    showToast("Thank you for your valuable feedback!");
+    scheduleAutoClose(2500); // Auto-exit after 2.5s
 
-    if (err) {
-      // stop auto-close and let user stay + retry
-      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
-      showToast("Failed to submit. Please try again.");
-      // keep page alive & re-render so it doesn't look empty
-      render();
+    function onDone(err) {
+      submitting = false;
+
+      if (err) {
+        // ✅ FIX #2: Cancel auto-close on error
+        if (closeTimer) { 
+          clearTimeout(closeTimer); 
+          closeTimer = null; 
+        }
+        showToast("Failed to submit. Please try again.");
+        render();
+        return;
+      }
+      // Success: allow scheduled close to happen
+    }
+
+    if (isFn(w.submitSurvey)) {
+      try {
+        w.submitSurvey(payload, function (err) { onDone(err); });
+      } catch (e) { onDone(e); }
       return;
     }
-    // success: allow scheduled close to happen
+
+    if (w.TenxApi && isFn(w.TenxApi.submitSurvey)) {
+      try {
+        w.TenxApi.submitSurvey(payload, function (err) { onDone(err); });
+      } catch (e2) { onDone(e2); }
+      return;
+    }
+
+    // No API: just close as scheduled
+    submitting = false;
+    try { console.log("[Feedback] submit payload:", payload); } catch(e3){}
   }
-
-  if (isFn(w.submitSurvey)) {
-    try {
-      w.submitSurvey(payload, function (err) { onDone(err); });
-    } catch (e) { onDone(e); }
-    return;
-  }
-
-  if (w.TenxApi && isFn(w.TenxApi.submitSurvey)) {
-    try {
-      w.TenxApi.submitSurvey(payload, function (err) { onDone(err); });
-    } catch (e2) { onDone(e2); }
-    return;
-  }
-
-  // no API: just close as scheduled
-  submitting = false;
-  try { console.log("[Feedback] submit payload:", payload); } catch(e3){}
-}
-
 
   /* ---------------- public API ---------------- */
   var FeedbackPage = {
@@ -344,11 +343,18 @@ function submitSurvey() {
     },
 
     closeToHome: function () {
+      // ✅ FIX #2: Clear any pending timers
+      if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+      }
+
       active = false;
       routeObj = survey = null;
       questions = [];
       answersMap = {};
       qIndex = cursorIndex = 0;
+      submitting = false;
 
       if (viewEl) {
         viewEl.style.display = "none";
@@ -366,16 +372,16 @@ function submitSurvey() {
 
       var k = e.keyCode || e.which;
 
-      // Back / Exit keys - go to previous question or home
+      // ✅ FIX #2: Back keys - try previous question first, then close
       if ([8, 27, 461, 10009, 4].indexOf(k) !== -1 || k === 403 || k === 85) {
         if (e.preventDefault) e.preventDefault();
         
         // Try to go to previous question
         if (previousQuestion()) {
-          return true; // successfully went back to previous question
+          return true; // successfully went back
         }
         
-        // At first question, close and go home
+        // ✅ FIX #2: At first question, close to home
         FeedbackPage.closeToHome();
         return true;
       }

@@ -1,5 +1,4 @@
-// js/app/messages.js — Messages page module (ES5 / Tizen 4 safe)
-// NOTE: View HTML is in index.html. This file only binds + renders.
+// js/app/messages.js — Messages page module with read status (ES5 / Tizen 4 safe)
 (function (w) {
   "use strict";
   if (w.MessagesPage) return;
@@ -45,7 +44,6 @@
 
     filterValueEl = qs("mx-msg-filter-value");
 
-    // if markup is missing, just fail safely
     return !!(viewEl && rootEl && listViewportEl && listContentEl && detailTitleEl && detailBodyEl);
   }
 
@@ -133,48 +131,49 @@
     safeText(filterValueEl, txt);
   }
 
-function renderList() {
-  if (!listContentEl) return;
+  function renderList() {
+    if (!listContentEl) return;
 
-  var h = itemHeightPx();
-  var html = "";
-  var i, it, title, typ, unread, typeLabel, typeCls;
+    var h = itemHeightPx();
+    var html = "";
+    var i, it, title, typ, unread, typeLabel, typeCls;
 
-  for (i = 0; i < shownItems.length; i++) {
-    it = shownItems[i] || {};
-    title = it.message_title ? String(it.message_title) : "Untitled";
-    typ = normalizeType(it.message_type);
-    unread = (String(it.guest_message_status) === "1");
+    for (i = 0; i < shownItems.length; i++) {
+      it = shownItems[i] || {};
+      title = it.message_title ? String(it.message_title) : "Untitled";
+      typ = normalizeType(it.message_type);
+      
+      // ✅ FIX #3: Check read status (0 = read, 1 = unread)
+      unread = (String(it.guest_message_status) === "1");
 
-    // nicer label
-    typeLabel = (typ === "emergency") ? "Emergency" : (typ === "notice") ? "Notice" : "Normal";
-    typeCls = (typ === "emergency") ? " mx-msg-item__type--emergency"
-            : (typ === "notice") ? " mx-msg-item__type--notice"
-            : " mx-msg-item__type--normal";
+      typeLabel = (typ === "emergency") ? "Emergency" : (typ === "notice") ? "Notice" : "Normal";
+      typeCls = (typ === "emergency") ? " mx-msg-item__type--emergency"
+              : (typ === "notice") ? " mx-msg-item__type--notice"
+              : " mx-msg-item__type--normal";
 
-    html +=
-      '<div class="mx-msg-item' + (i === focusIndex ? " is-selected" : "") + (unread ? " is-unread" : "") +
-      '" style="top:' + (i * h) + 'px;">' +
+      html +=
+        '<div class="mx-msg-item' + (i === focusIndex ? " is-selected" : "") + (unread ? " is-unread" : "") +
+        '" style="top:' + (i * h) + 'px;">' +
 
-        '<div class="mx-msg-item__row">' +
-          (unread ? '<span class="mx-msg-item__dot"></span>' : '<span class="mx-msg-item__dot mx-msg-item__dot--off"></span>') +
-          '<div class="mx-msg-item__title">' + escapeHtml(title) + '</div>' +
+          '<div class="mx-msg-item__row">' +
+            // ✅ FIX #3: Show green checkmark for read messages
+            (unread ? 
+              '<span class="mx-msg-item__dot"></span>' : 
+              '<span class="mx-msg-item__dot mx-msg-item__dot--read">✓</span>'
+            ) +
+            '<div class="mx-msg-item__title">' + escapeHtml(title) + '</div>' +
+            '<span class="mx-msg-item__type' + typeCls + '">' + escapeHtml(typeLabel) + '</span>' +
+          "</div>" +
 
-          // ✅ pill INSIDE row (right side)
-          '<span class="mx-msg-item__type' + typeCls + '">' + escapeHtml(typeLabel) + '</span>' +
-        "</div>" +
+          '<div class="mx-msg-item__meta"></div>' +
+        "</div>";
+    }
 
-        // ✅ meta row kept for time/date later (leave empty for now)
-        '<div class="mx-msg-item__meta"></div>' +
-      "</div>";
+    listContentEl.innerHTML = html;
+    listContentEl.style.height = (shownItems.length * h) + "px";
+    listContentEl.style.transform = "translate3d(0," + (-scrollY) + "px,0)";
+    updateScrollbar();
   }
-
-  listContentEl.innerHTML = html;
-  listContentEl.style.height = (shownItems.length * h) + "px";
-  listContentEl.style.transform = "translate3d(0," + (-scrollY) + "px,0)";
-  updateScrollbar();
-}
-
 
   function renderDetail() {
     var it = shownItems[focusIndex] || {};
@@ -225,16 +224,60 @@ function renderList() {
     renderAll();
   }
 
+  // ✅ FIX #3: Mark message as read via API
   function markCurrentRead() {
     var it = shownItems[focusIndex];
     if (!it) return;
-    it.guest_message_status = 0;
+    
+    var messageId = it.message_id || it.id;
+    if (!messageId) {
+      console.warn("[Messages] No message_id found for current message");
+      return;
+    }
 
-    try {
-      if (typeof w.MessagesPage.onMarkRead === "function") w.MessagesPage.onMarkRead(it);
-    } catch (e) {}
+    // Don't call API if already read
+    if (String(it.guest_message_status) === "0") {
+      return;
+    }
 
-    renderList();
+    // ✅ FIX #3: Call TenxApi.setMessageReadStatus
+    if (w.TenxApi && typeof w.TenxApi.setMessageReadStatus === "function") {
+      w.TenxApi.setMessageReadStatus({
+        message_id: messageId,
+        guest_message_status: 0 // 0 = read
+      }).then(
+        function(res) {
+          console.log("[Messages] Marked as read:", messageId);
+          
+          // ✅ FIX #3: Update local state
+          it.guest_message_status = 0;
+          
+          // ✅ FIX #3: Show toast
+          if (w.tenxToast) {
+            w.tenxToast("Message marked as read", 2000, "success");
+          }
+          
+          // Re-render to show green checkmark
+          renderList();
+        },
+        function(err) {
+          console.error("[Messages] Failed to mark as read:", err);
+          if (w.tenxToast) {
+            w.tenxToast("Failed to mark message as read", 2500, "error");
+          }
+        }
+      );
+    } else {
+      console.warn("[Messages] TenxApi.setMessageReadStatus not available");
+      
+      // ✅ Fallback: update UI optimistically
+      it.guest_message_status = 0;
+      renderList();
+      
+      if (w.tenxToast) {
+        w.tenxToast("Message marked as read (offline)", 2000, "info");
+      }
+    }
   }
 
   var api = {
@@ -278,6 +321,7 @@ function renderList() {
       if (k === LEFT) { focusArea = "list"; applyFocusStyles(); return true; }
       if (k === RIGHT) { focusArea = "detail"; applyFocusStyles(); return true; }
 
+      // ✅ FIX #3: OK marks message as read and switches to detail view
       if (k === OK) {
         markCurrentRead();
         focusArea = "detail";
